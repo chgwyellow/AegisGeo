@@ -1,0 +1,1 @@
+// type GlobalDisaster structs
