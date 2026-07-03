@@ -1,6 +1,5 @@
 # AegisGeo 🌍
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/chgwyellow/AegisGeo)](https://goreportcard.com/report/github.com/chgwyellow/AegisGeo)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/chgwyellow/AegisGeo)](https://github.com/chgwyellow/AegisGeo)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -86,6 +85,7 @@ aegisgeo/
 │   ├── model/            # Unified Data Domain: Core ontology structs
 │   └── store/            # Storage Layer: Thread-safe in-memory cache using sync.Mutex
 ├── .gitignore            # Strict network/environment production ignore-list
+├── go.mod                # Go module definition and dependencies
 └── README.md             # System documentation
 ```
 
