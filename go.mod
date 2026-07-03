@@ -1,3 +1,3 @@
-module github.com/chgwyellow/AegisGeo
+module AegisGeo
 
 go 1.26.4
