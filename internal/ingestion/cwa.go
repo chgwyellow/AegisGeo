@@ -68,7 +68,10 @@ func (c *CwaClient) FetchLatest() ([]models.Event, error) {
 	events := make([]models.Event, 0, len(raw.Records.Earthquake))
 
 	for _, eq := range raw.Records.Earthquake {
-		t, _ := time.Parse("2026-01-02 15:04:06", eq.OriginTime)
+		// Transform string to time type
+		// Time layout doesn't need to know the format formula
+		// Using Go's Birthday and time, 2006-01-02 15:04:06
+		t, _ := time.Parse("2006-01-02 15:04:06", eq.OriginTime)
 
 		standardEvent := models.Event{
 			ID:        fmt.Sprintf("CWA-%s", eq.No),
