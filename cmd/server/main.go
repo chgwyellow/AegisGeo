@@ -4,11 +4,29 @@ import (
 	"AegisGeo/internal/ingestion"
 	"AegisGeo/internal/store"
 	"fmt"
+	"log"
+	"os"
 	"sync"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	fmt.Println("AegisGeo is starting...")
+
+	// Load .env
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Fail to load .env: %s", err)
+	}
+
+	// Read env variables
+	cwaURL := os.Getenv("CWA_API_URL")
+	cwaToken := os.Getenv("CWA_TOKEN")
+
+	if cwaURL == "" || cwaToken == "" {
+		log.Fatal("Do not set CWA_API_URL or CWA_TOKEN yet!")
+	}
 
 	// Initialize store, get memory address
 	cache := store.NewMemoryCache()
