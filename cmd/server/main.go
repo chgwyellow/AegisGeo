@@ -24,9 +24,10 @@ func main() {
 	cwaURL := os.Getenv("CWA_API_URL")
 	cwaToken := os.Getenv("CWA_TOKEN")
 	usgsURL := os.Getenv("USGS_API_URL")
+	jmaURL := os.Getenv("JMA_API_URL")
 
-	if cwaURL == "" || cwaToken == "" || usgsURL == "" {
-		log.Fatal("Do not set CWA_API_URL or CWA_TOKEN yet!")
+	if cwaURL == "" || cwaToken == "" || usgsURL == "" || jmaURL == "" {
+		log.Fatal("Get wrong in environment setting!")
 	}
 
 	// Initialize store, get memory address
@@ -36,6 +37,7 @@ func main() {
 	clients := []ingestion.IngestionClient{
 		ingestion.NewCwaClient(cwaURL, cwaToken),
 		ingestion.NewUsgsClient(usgsURL),
+		ingestion.NewJmaClient(jmaURL),
 	}
 
 	// Prepare Wait Group
