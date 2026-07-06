@@ -7,6 +7,6 @@ import (
 type IngestionClient interface {
 	// Catch the latest event and transfer to Event slice
 	FetchLatest() ([]models.Event, error)
-	// Return the source
+	// Return the source unit
 	GetName() string
 }
