@@ -37,6 +37,7 @@ type cwaRawResponse struct {
 				OriginTime string  `json:"OriginTime"`
 				Depth      float64 `json:"FocalDepth"`
 				Epicenter  struct {
+					Location  string  `json:"Location"`
 					Latitude  float64 `json:"EpicenterLatitude"`
 					Longitude float64 `json:"EpicenterLongitude"`
 				}
@@ -103,6 +104,9 @@ func (c *CwaClient) FetchLatest() ([]models.Event, error) {
 			Depth:     eq.EarthquakeInfo.Depth,
 			Timestamp: t,
 			Country:   "TW",
+			Location:  eq.EarthquakeInfo.Epicenter.Location,
+			Latitude:  eq.EarthquakeInfo.Epicenter.Latitude,
+			Longitude: eq.EarthquakeInfo.Epicenter.Longitude,
 		}
 
 		events = append(events, standardEvent)

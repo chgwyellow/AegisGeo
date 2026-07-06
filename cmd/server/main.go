@@ -68,6 +68,6 @@ func main() {
 	fmt.Printf("There are %d event(s) in the database!\n", len(allEvents))
 
 	for _, e := range allEvents {
-		fmt.Printf("   - [%s] Type: %s, Magnitude: %.1f\n", e.ID, e.Type, e.Magnitude)
+		fmt.Printf("   - [%s] Type: %s, Magnitude: %.1f, Date: %v, Location: %s\n", e.ID, e.Type, e.Magnitude, e.Timestamp, e.Location)
 	}
 }
