@@ -65,12 +65,10 @@ func (j *jmaClient) FetchLatest() ([]models.Event, error) {
 		if item.Earthquake.Hypocenter.Name == "" {
 			continue
 		}
-		t, err := time.Parse("2006/01/02 15:04:05", item.Earthquake.OriginTime)
+		timeStrWithZone := fmt.Sprintf("%s +0900", item.Earthquake.OriginTime)
+		t, err := time.Parse("2006/01/02 15:04:05 -0700", timeStrWithZone)
 		if err != nil {
 			t = time.Now()
-		} else {
-			loc := time.FixedZone("CST", 8*60*60)
-			t = t.In(loc)
 		}
 
 		standardEvent := models.Event{

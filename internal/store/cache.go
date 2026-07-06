@@ -2,7 +2,6 @@ package store
 
 import (
 	"AegisGeo/internal/models"
-	"cmp"
 	"slices"
 	"sync"
 )
@@ -49,8 +48,13 @@ func (c *MemoryCache) GetAll() []models.Event {
 
 	// Sort via timestamp
 	slices.SortFunc(list, func(a, b models.Event) int {
-		// descending
-		return cmp.Compare(b.Timestamp.UnixNano(), a.Timestamp.UnixNano())
+		if b.Timestamp.After(a.Timestamp) {
+			return 1
+		}
+		if b.Timestamp.Before(a.Timestamp) {
+			return -1
+		}
+		return 0
 	})
 	return list
 }
