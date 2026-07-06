@@ -54,7 +54,7 @@ func main() {
 			}
 			for _, event := range events {
 				cache.Set(event)
-				fmt.Printf("[%s Engine] Added: %s\n", c.GetName(), event.ID)
+				fmt.Printf("[%s Engine] Added: %v\n", c.GetName(), event.ID)
 			}
 		}()
 	}

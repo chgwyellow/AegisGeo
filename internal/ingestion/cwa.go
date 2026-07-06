@@ -31,19 +31,19 @@ func (c *CwaClient) GetName() string {
 type cwaRawResponse struct {
 	Records struct {
 		Earthquake []struct {
-			No             string `json:"EarthquakeNo"`
+			No             int64  `json:"EarthquakeNo"`
 			ReportContent  string `json:"ReportContent"`
 			EarthquakeInfo struct {
 				OriginTime string  `json:"OriginTime"`
 				Depth      float64 `json:"FocalDepth"`
-				Epicenter  []struct {
+				Epicenter  struct {
 					Latitude  float64 `json:"EpicenterLatitude"`
 					Longitude float64 `json:"EpicenterLongitude"`
 				}
+				EarthquakeMagnitude struct {
+					Magnitude float64 `json:"MagnitudeValue"`
+				} `json:"EarthquakeMagnitude"`
 			} `json:"EarthquakeInfo"`
-			EarthquakeMagnitude []struct {
-				Magnitude float64 `json:"MagnitudeValue"`
-			} `json:"EarthquakeMagnitude"`
 		} `json:"Earthquake"`
 	} `json:"records"`
 }
@@ -92,14 +92,14 @@ func (c *CwaClient) FetchLatest() ([]models.Event, error) {
 		// Transform string to time type
 		// Time layout doesn't need to know the format formula
 		// Using Go's Birthday and time, 2006-01-02 15:04:06
-		t, _ := time.Parse("2006-01-02 15:04:06", eq.OriginTime)
+		t, _ := time.Parse("2006-01-02 15:04:06", eq.EarthquakeInfo.OriginTime)
 
 		standardEvent := models.Event{
-			ID:        fmt.Sprintf("CWA-%s", eq.No),
+			ID:        fmt.Sprintf("CWA-%d", eq.No),
 			Source:    "CWA",
 			Type:      "Earthquake",
 			Title:     eq.ReportContent,
-			Magnitude: eq.EarthquakeInfo.Magnitude,
+			Magnitude: eq.EarthquakeInfo.EarthquakeMagnitude.Magnitude,
 			Depth:     eq.EarthquakeInfo.Depth,
 			Timestamp: t,
 			Country:   "TW",
