@@ -93,7 +93,12 @@ func (c *CwaClient) FetchLatest() ([]models.Event, error) {
 		// Transform string to time type
 		// Time layout doesn't need to know the format formula
 		// Using Go's Birthday and time, 2006-01-02 15:04:06
-		t, _ := time.Parse("2006-01-02 15:04:06", eq.EarthquakeInfo.OriginTime)
+		t, err := time.Parse(time.RFC3339, eq.EarthquakeInfo.OriginTime)
+
+		if err != nil {
+			fmt.Printf("Can not parse time '%s': %v\n", eq.EarthquakeInfo.OriginTime, err)
+			continue
+		}
 
 		standardEvent := models.Event{
 			ID:        fmt.Sprintf("CWA-%d", eq.No),
