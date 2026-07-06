@@ -5,6 +5,8 @@ import (
 	"AegisGeo/internal/models"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"time"
 )
 
@@ -41,25 +43,38 @@ type cwaRawResponse struct {
 }
 
 func (c *CwaClient) FetchLatest() ([]models.Event, error) {
-	fakeCwaJson := `{
-		"Records": {
-			"Earthquake": [
-				{
-					"EarthquakeNo": "115001",
-					"ReportContent": "臺灣東部海域顯著有感地震",
-					"OriginTime": "2026-07-06 10:00:00",
-					"EarthquakeInfo": {
-						"EarthquakeMagnitude": 5.8,
-						"Depth": 15.4
-					}
-				}
-			]
-		}
-	}`
+	// Create HTTP GET request
+	req, err := http.NewRequest("GET", c.apiURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Fail to create request: %v", err)
+	}
+
+	// Add token to Header
+	req.Header.Add("Authorization", c.token)
+
+	// Launch HTTP Request
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("Fail to connect %v Server: %v", c.GetName(), err)
+	}
+
+	// Release socket to prevent resource run out
+	defer resp.Body.Close()
+
+	// Check status code
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%v Server return fail code: %d", c.GetName(), resp.StatusCode)
+	}
+
+	// Load data flow
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("Load %v response body fail: %v", c.GetName(), err)
+	}
 
 	// parsing original data
 	var raw cwaRawResponse
-	err := json.Unmarshal([]byte(fakeCwaJson), &raw) // parsing data and store to pointed v
+	err = json.Unmarshal(bodyBytes, &raw) // parsing data and store to pointed v
 	if err != nil {
 		return nil, fmt.Errorf("Fail to parse CWA data: %v", err)
 	}
