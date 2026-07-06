@@ -1,11 +1,10 @@
 package main
 
 import (
-	"AegisGeo/internal/models"
+	"AegisGeo/internal/ingestion"
 	"AegisGeo/internal/store"
 	"fmt"
 	"sync"
-	"time"
 )
 
 func main() {
@@ -14,60 +13,33 @@ func main() {
 	// Initialize store, get memory address
 	cache := store.NewMemoryCache()
 
+	// Create Clients
+	clients := []ingestion.IngestionClient{
+		ingestion.NewCwaClient("https://api.cwa.gov.tw/fake", "your-token-here"),
+	}
+
 	// Prepare Wait Group
 	var wg sync.WaitGroup
-	wg.Add(3) // 3 pipelines
+	wg.Add(len(clients)) // According to source amount
 
-	// 1st pipeline: CWA
-	go func() {
-		defer wg.Done()
-		for i := 1; i <= 5; i++ {
-			event := models.Event{
-				ID:        fmt.Sprintf("CWA-%d", i),
-				Source:    "CWA",
-				Type:      "Earthquake",
-				Magnitude: 4.5 + float64(i)*0.2,
-				Timestamp: time.Now(),
-			}
-			cache.Set(event)
-			fmt.Printf("[CWA] Written Event: %s\n", event.ID)
-			time.Sleep(100 * time.Millisecond)
-		}
-	}()
+	for _, client := range clients {
+		c := client
 
-	// 2nd pipeline: USA
-	go func() {
-		defer wg.Done()
-		for i := 1; i <= 5; i++ {
-			event := models.Event{
-				ID:        fmt.Sprintf("USGS-%d", i),
-				Source:    "USGS",
-				Type:      "Tsunami",
-				Magnitude: 0.0,
-				Timestamp: time.Now(),
-			}
-			cache.Set(event)
-			fmt.Printf("[USGS] Written Event: %s\n", event.ID)
-			time.Sleep(150 * time.Millisecond)
-		}
-	}()
+		go func() {
+			defer wg.Done()
+			fmt.Printf("Start [%s Engine]...\n", c.GetName())
 
-	// 3rd pipeline: Japan
-	go func() {
-		defer wg.Done()
-		for i := 1; i <= 5; i++ {
-			event := models.Event{
-				ID:        fmt.Sprintf("JMA-%d", i),
-				Source:    "JMA",
-				Type:      "Volcano",
-				Magnitude: 3.8 + float64(i)*0.1,
-				Timestamp: time.Now(),
+			events, err := c.FetchLatest()
+			if err != nil {
+				fmt.Printf("[%s Engine] failed: %v\n", c.GetName(), err)
+				return
 			}
-			cache.Set(event)
-			fmt.Printf("[JAM] Written Event: %s\n", event.ID)
-			time.Sleep(500 * time.Millisecond)
-		}
-	}()
+			for _, event := range events {
+				cache.Set(event)
+				fmt.Printf("[%s Engine] Success: %s\n", c.GetName(), event.ID)
+			}
+		}()
+	}
 
 	// Wait for goroutines finish their work
 	wg.Wait()
