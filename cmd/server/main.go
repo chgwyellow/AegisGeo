@@ -68,6 +68,34 @@ func main() {
 	fmt.Printf("There are %d event(s) in the database!\n", len(allEvents))
 
 	for _, e := range allEvents {
-		fmt.Printf("   - [%s] Type: %s, Magnitude: %.1f, Date: %v, Location: %s\n", e.ID, e.Type, e.Magnitude, e.Timestamp, e.Location)
+		fmt.Printf("   - [%s] Type: %s, Magnitude: %.1f, Time: %v, Location: %s\n", e.ID, e.Type, e.Magnitude, e.Timestamp, e.Location)
+	}
+
+	fmt.Println("\n Start index search...")
+
+	targetID := "CWA-115037"
+
+	event, exists := cache.Get(targetID)
+
+	if exists {
+		fmt.Printf("✅ 【Success】Found the crucial data！\n")
+		fmt.Printf("   - No: %s\n", event.ID)
+		fmt.Printf("   - Title: %s\n", event.Title)
+		fmt.Printf("   - Magnitude: %.1f \n", event.Magnitude)
+		fmt.Printf("   - Depth: %.1f km\n", event.Depth)
+		fmt.Printf("   - Time: %v\n", event.Timestamp)
+	} else {
+		fmt.Printf("❌ 【Failed】Can not find %s event\n", targetID)
+	}
+
+	fmt.Println("--------------------------------------------------")
+
+	ghostID := "CWA-999999"
+	event, exists = cache.Get(ghostID)
+
+	if exists {
+		fmt.Printf("Success")
+	} else {
+		fmt.Printf("fail")
 	}
 }
