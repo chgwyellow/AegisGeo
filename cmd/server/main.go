@@ -33,7 +33,7 @@ func main() {
 
 	// Create Clients
 	clients := []ingestion.IngestionClient{
-		ingestion.NewCwaClient("https://api.cwa.gov.tw/fake", "your-token-here"),
+		ingestion.NewCwaClient(cwaURL, cwaToken),
 	}
 
 	// Prepare Wait Group
