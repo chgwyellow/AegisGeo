@@ -2,7 +2,6 @@ package ingestion
 
 import (
 	"AegisGeo/internal/models"
-	"aegisgeo/internal/models"
 	"encoding/json"
 	"fmt"
 	"io"
