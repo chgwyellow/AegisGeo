@@ -36,7 +36,7 @@ func main() {
 			}
 			for _, event := range events {
 				cache.Set(event)
-				fmt.Printf("[%s Engine] Success: %s\n", c.GetName(), event.ID)
+				fmt.Printf("[%s Engine] Added: %s\n", c.GetName(), event.ID)
 			}
 		}()
 	}
@@ -47,7 +47,7 @@ func main() {
 
 	// Get all data
 	allEvents := cache.GetAll()
-	fmt.Printf("There are %d events in the database!\n", len(allEvents))
+	fmt.Printf("There are %d event(s) in the database!\n", len(allEvents))
 
 	for _, e := range allEvents {
 		fmt.Printf("   - [%s] Type: %s, Magnitude: %.1f\n", e.ID, e.Type, e.Magnitude)
