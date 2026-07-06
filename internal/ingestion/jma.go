@@ -69,7 +69,7 @@ func (j *jmaClient) FetchLatest() ([]models.Event, error) {
 		if err != nil {
 			t = time.Now()
 		} else {
-			loc := time.FixedZone("JST", 9*60*60)
+			loc := time.FixedZone("CST", 8*60*60)
 			t = t.In(loc)
 		}
 
