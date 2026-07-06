@@ -26,16 +26,16 @@ func (u *UsgsClient) GetName() string {
 
 type usgsRawResponse struct {
 	Features []struct {
-		ID         string `json: "id"`
+		ID         string `json:"id"`
 		Properties struct {
 			Mag   float64 `json:"mag"`
 			Place string  `json:"place"`
 			Time  int64   `json:"time"`
 			Title string  `json:"title"`
-		} `json:properties`
+		} `json:"properties"`
 		Geometry struct {
 			Coordinates []float64 `json:"coordinates"` //[long, lat, depth]
-		} `json:"geometry`
+		} `json:"geometry"`
 	} `json:"features"`
 }
 

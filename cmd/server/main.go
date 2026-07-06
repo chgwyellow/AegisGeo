@@ -23,8 +23,9 @@ func main() {
 	// Read env variables
 	cwaURL := os.Getenv("CWA_API_URL")
 	cwaToken := os.Getenv("CWA_TOKEN")
+	usgsURL := os.Getenv("USGS_API_URL")
 
-	if cwaURL == "" || cwaToken == "" {
+	if cwaURL == "" || cwaToken == "" || usgsURL == "" {
 		log.Fatal("Do not set CWA_API_URL or CWA_TOKEN yet!")
 	}
 
@@ -34,6 +35,7 @@ func main() {
 	// Create Clients
 	clients := []ingestion.IngestionClient{
 		ingestion.NewCwaClient(cwaURL, cwaToken),
+		ingestion.NewUsgsClient(usgsURL),
 	}
 
 	// Prepare Wait Group
