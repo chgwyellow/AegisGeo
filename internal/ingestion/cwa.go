@@ -33,13 +33,19 @@ type cwaRawResponse struct {
 		Earthquake []struct {
 			No             string `json:"EarthquakeNo"`
 			ReportContent  string `json:"ReportContent"`
-			OriginTime     string `json:"OriginTime"`
 			EarthquakeInfo struct {
-				Magnitude float64 `json:"EarthquakeMagnitude"`
-				Depth     float64 `json:"Depth"`
+				OriginTime string  `json:"OriginTime"`
+				Depth      float64 `json:"FocalDepth"`
+				Epicenter  []struct {
+					Latitude  float64 `json:"EpicenterLatitude"`
+					Longitude float64 `json:"EpicenterLongitude"`
+				}
 			} `json:"EarthquakeInfo"`
+			EarthquakeMagnitude []struct {
+				Magnitude float64 `json:"MagnitudeValue"`
+			} `json:"EarthquakeMagnitude"`
 		} `json:"Earthquake"`
-	} `json:"Records"`
+	} `json:"records"`
 }
 
 func (c *CwaClient) FetchLatest() ([]models.Event, error) {
