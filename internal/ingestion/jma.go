@@ -82,6 +82,7 @@ func (j *jmaClient) FetchLatest() ([]models.Event, error) {
 			Depth:     item.Earthquake.Hypocenter.Depth,
 			Timestamp: t,
 			Country:   "JP",
+			Location:  item.Earthquake.Hypocenter.Name,
 		}
 
 		events = append(events, standardEvent)
