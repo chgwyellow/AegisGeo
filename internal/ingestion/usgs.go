@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -79,7 +80,7 @@ func (u *UsgsClient) FetchLatest() ([]models.Event, error) {
 			Magnitude: f.Properties.Mag,
 			Depth:     depth,
 			Timestamp: t,
-			Country:   "USA",
+			Country:   parseCountryFromPlace(f.Properties.Place),
 			Location:  f.Properties.Place,
 			Latitude:  f.Geometry.Coordinates[1],
 			Longitude: f.Geometry.Coordinates[0],
@@ -88,4 +89,37 @@ func (u *UsgsClient) FetchLatest() ([]models.Event, error) {
 		events = append(events, standardEvent)
 	}
 	return events, nil
+}
+
+// Transfer Country name
+func parseCountryFromPlace(place string) string {
+	if place == "" {
+		return "UNKNOWN"
+	}
+
+	placeUpper := strings.ToUpper(place)
+
+	if strings.HasSuffix(placeUpper, ", CA") ||
+		strings.HasSuffix(placeUpper, ", AK") ||
+		strings.HasSuffix(placeUpper, ", NV") ||
+		strings.HasSuffix(placeUpper, "USA") {
+		return "US"
+	}
+	if strings.Contains(placeUpper, "TAIWAN") {
+		return "TW"
+	}
+	if strings.Contains(placeUpper, "CHINA") {
+		return "CN"
+	}
+	if strings.Contains(placeUpper, "FIJI") {
+		return "FJ"
+	}
+	if strings.Contains(placeUpper, "CHILE") {
+		return "CL"
+	}
+	if strings.Contains(placeUpper, "INDONESIA") {
+		return "ID"
+	}
+
+	return "OCEAN"
 }
