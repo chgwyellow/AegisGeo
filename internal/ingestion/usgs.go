@@ -10,6 +10,35 @@ import (
 	"time"
 )
 
+// Geographic keyword dict
+var countryDictionary = map[string]string{
+	// TW
+	"TAIWAN": "TW",
+	"JIUFEN": "TW",
+
+	// US State
+	"ALASKA":         "US",
+	"HAWAII":         "US",
+	"COLORADO":       "US",
+	"CALIFORNIA":     "US",
+	"NEW MEXICO":     "US",
+	"PUERTO RICO":    "US",
+	"VIRGIN ISLANDS": "US",
+
+	// Countries
+	"TIMOR LESTE": "TL",
+	"MAURITIUS":   "MU",
+	"PHILIPPINES": "PH",
+	"JAPAN":       "JP",
+	"CHILE":       "CL",
+	"TONGA":       "TO",
+	"FIJI":        "FJ",
+	"COSTA RICA":  "CR",
+	"INDONESIA":   "ID",
+	"CHINA":       "CN",
+	"RUSSIA":      "RU",
+}
+
 type UsgsClient struct {
 	apiURL string
 }
@@ -99,26 +128,29 @@ func parseCountryFromPlace(place string) string {
 
 	placeUpper := strings.ToUpper(place)
 
-	if strings.HasSuffix(placeUpper, ", CA") ||
-		strings.HasSuffix(placeUpper, ", AK") ||
-		strings.HasSuffix(placeUpper, ", NV") ||
-		strings.HasSuffix(placeUpper, "USA") {
+	// USA states
+	if strings.Contains(placeUpper, ", CA") ||
+		strings.Contains(placeUpper, ", AK") ||
+		strings.Contains(placeUpper, ", HI") ||
+		strings.Contains(placeUpper, ", CO") ||
+		strings.Contains(placeUpper, ", NV") ||
+		strings.Contains(placeUpper, "USA") {
 		return "US"
 	}
-	if strings.Contains(placeUpper, "TAIWAN") {
-		return "TW"
+
+	// Iterate dict to match keyword
+	for keyword, isoCode := range countryDictionary {
+		if strings.Contains(placeUpper, keyword) {
+			return isoCode
+		}
 	}
-	if strings.Contains(placeUpper, "CHINA") {
-		return "CN"
-	}
-	if strings.Contains(placeUpper, "FIJI") {
-		return "FJ"
-	}
-	if strings.Contains(placeUpper, "CHILE") {
-		return "CL"
-	}
-	if strings.Contains(placeUpper, "INDONESIA") {
-		return "ID"
+
+	// Ocean character (e.g. Ridge, Trench, Ocean )
+	if strings.Contains(placeUpper, "RIDGE") ||
+		strings.Contains(placeUpper, "TRENCH") ||
+		strings.Contains(placeUpper, "BASIN") ||
+		strings.Contains(placeUpper, "OCEAN") {
+		return "OCEAN"
 	}
 
 	return "OCEAN"
