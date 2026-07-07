@@ -54,7 +54,7 @@ func main() {
 		ingestion.NewTsunamiClient(noaaURL),
 	}
 
-	ticker := time.NewTicker(5 * time.Minute)
+	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
 	fmt.Println("Start Daemon, 24/7 365 Monitoring...")
