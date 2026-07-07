@@ -52,47 +52,56 @@ func main() {
 		ingestion.NewJmaClient(jmaURL),
 	}
 
-	// Prepare Wait Group
-	var wg sync.WaitGroup
-	wg.Add(len(clients)) // According to source amount
+	ticker := time.NewTicker(5 * time.Minute)
+	defer ticker.Stop()
 
-	for _, client := range clients {
-		c := client
+	fmt.Println("Start Daemon, 24/7 365 Monitoring...")
 
-		go func() {
-			defer wg.Done()
-			fmt.Printf("Start [%s Engine]...\n", c.GetName())
+	for range ticker.C {
+		fmt.Printf("Current time: %v\n", time.Now().Format("2006-01-02 15:04:06"))
 
-			events, err := c.FetchLatest()
-			if err != nil {
-				fmt.Printf("[%s Engine] failed: %v\n", c.GetName(), err)
-				return
-			}
-			for _, event := range events {
-				cache.Set(event) // To memory
-				fmt.Printf("[%s Engine] Added: %v\n", c.GetName(), event.ID)
+		// Prepare Wait Group
+		var wg sync.WaitGroup
+		wg.Add(len(clients)) // Based on source amount
 
-				// To PostgresSQL
-				ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-				err := db.SaveEvent(ctx, event)
-				cancel()
+		for _, client := range clients {
+			c := client
+
+			go func() {
+				defer wg.Done()
+				fmt.Printf("Start [%s Engine]...\n", c.GetName())
+
+				events, err := c.FetchLatest()
 				if err != nil {
-					fmt.Printf("[Fail to write to DB] ID: %s, error: %v\n", event.ID, err)
+					fmt.Printf("[%s Engine] failed: %v\n", c.GetName(), err)
+					return
 				}
-			}
-		}()
-	}
+				for _, event := range events {
+					cache.Set(event) // To memory
+					fmt.Printf("[%s Engine] Added: %v\n", c.GetName(), event.ID)
 
-	// Wait for goroutines finish their work
-	wg.Wait()
-	fmt.Println("\nAll data has been recorded")
+					// To PostgresSQL
+					ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+					err := db.SaveEvent(ctx, event)
+					cancel()
+					if err != nil {
+						fmt.Printf("[Fail to write to DB] ID: %s, error: %v\n", event.ID, err)
+					}
+				}
+			}()
+		}
 
-	// Get all data
-	fmt.Printf("There are %d event(s) in the memory!\n", len(cache.GetAll()))
+		// Wait for goroutines finish their work
+		wg.Wait()
+		fmt.Println("\nAll data has been recorded")
 
-	for _, e := range cache.GetAll() {
-		localTimeStr := e.Timestamp.Format("2006-01-02 15:04:06 (MST)")
-		fmt.Printf("   - [%s] Type: %s, Magnitude: %.1f, Time: %v, Location: %s\n", e.ID, e.Type, e.Magnitude, localTimeStr, e.Location)
+		// Get all data
+		fmt.Printf("There are %d event(s) in the memory!\n", len(cache.GetAll()))
+
+		for _, e := range cache.GetAll() {
+			localTimeStr := e.Timestamp.Format("2006-01-02 15:04:06 (MST)")
+			fmt.Printf("   - [%s] Type: %s, Magnitude: %.1f, Time: %v, Location: %s\n", e.ID, e.Type, e.Magnitude, localTimeStr, e.Location)
+		}
 	}
 
 }
