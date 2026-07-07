@@ -45,10 +45,12 @@ func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 
 	// Check if there is any data whose time is less then 60 seconds
 	// And physical distance is less than 50 km
+	// And they have the same type
 	collisionQuery := `
 		SELECT id, source FROM geo_events
 		WHERE event_timestamp BETWEEN $1::TIMESTAMPTZ - INTERVAL '60 SECOND' AND $1::TIMESTAMPTZ + INTERVAL '60 SECOND'
 		  AND ST_DistanceSphere(geom, ST_SetSRID(ST_MakePoint($2, $3), 4326)) <= 50000
+		  AND event_type = $4
 		LIMIT 1;
 	`
 	// ST_MakePoint create a matrix point for long and lat
@@ -58,7 +60,7 @@ func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 	var existingID, existingSource string
 	// If there is more than one row return, err is nil
 	// Which means there are duplicate data
-	err := db.Pool.QueryRow(ctx, collisionQuery, e.Timestamp, e.Longitude, e.Latitude).Scan(&existingID, &existingSource)
+	err := db.Pool.QueryRow(ctx, collisionQuery, e.Timestamp, e.Longitude, e.Latitude, e.Type).Scan(&existingID, &existingSource)
 
 	if err == nil {
 		if (existingSource == "CWA" || existingSource == "JMA") && e.Source == "USGS" {

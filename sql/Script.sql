@@ -16,6 +16,13 @@ CREATE TABLE IF NOT EXISTS geo_events (
 	created_at timestamptz DEFAULT now()
 );
 
+-- Store unregular data
+ALTER TABLE geo_events ADD COLUMN IF NOT EXISTS details jsonb;
+
+ALTER TABLE geo_events DROP CONSTRAINT IF EXISTS geo_events_pkey;
+
+ALTER TABLE geo_events ADD PRIMARY KEY (id, event_type);
+
 CREATE INDEX IF NOT EXISTS idx_event_timestamp ON
 geo_events(event_timestamp DESC);
 
