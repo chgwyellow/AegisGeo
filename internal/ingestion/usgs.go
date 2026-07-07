@@ -134,6 +134,13 @@ func parseCountryFromPlace(place string) string {
 
 	placeUpper := strings.ToUpper(place)
 
+	// Iterate dict to match keyword
+	for keyword, isoCode := range countryDictionary {
+		if strings.Contains(placeUpper, keyword) {
+			return isoCode
+		}
+	}
+
 	// USA states
 	if strings.Contains(placeUpper, ", CA") ||
 		strings.Contains(placeUpper, ", AK") ||
@@ -142,13 +149,6 @@ func parseCountryFromPlace(place string) string {
 		strings.Contains(placeUpper, ", NV") ||
 		strings.Contains(placeUpper, "USA") {
 		return "US"
-	}
-
-	// Iterate dict to match keyword
-	for keyword, isoCode := range countryDictionary {
-		if strings.Contains(placeUpper, keyword) {
-			return isoCode
-		}
 	}
 
 	// Ocean character (e.g. Ridge, Trench, Ocean )
