@@ -25,19 +25,18 @@ func (t *TsunamiClient) GetName() string {
 
 type noaaTsunamiResponse struct {
 	Items []struct {
-		ID                   int     `json:"id"`
-		Year                 int     `json:"year"`
-		Month                int     `json:"month"`
-		Day                  int     `json:"day"`
-		Hour                 int     `json:"hour"`
-		Minute               int     `json:"minute"`
-		MaxWaterHeight       float64 `json:"maxWaterHeight"`
-		TsunamiIntensity     float64 `json:"tsunamiIntensity"`
-		Country              string  `json:"country"`
-		LocationName         string  `json:"locationName"`
-		Latitude             float64 `json:"latitude"`
-		Longitude            float64 `json:"longitude"`
-		AssociatedEarthquake int     `json:"earthquakeId"`
+		ID               int     `json:"id"`
+		Year             int     `json:"year"`
+		Month            int     `json:"month"`
+		Day              int     `json:"day"`
+		Hour             int     `json:"hour"`
+		Minute           int     `json:"minute"`
+		MaxWaterHeight   float64 `json:"maxWaterHeight"`
+		TsunamiIntensity float64 `json:"tsunamiIntensity"`
+		Country          string  `json:"country"`
+		LocationName     string  `json:"locationName"`
+		Latitude         float64 `json:"latitude"`
+		Longitude        float64 `json:"longitude"`
 	} `json:"items"`
 }
 
@@ -80,8 +79,7 @@ func (t *TsunamiClient) FetchLatest() ([]models.Event, error) {
 			Latitude:  item.Latitude,
 			Longitude: item.Longitude,
 			Details: map[string]any{
-				"tsunami_intensity":     item.TsunamiIntensity,
-				"associated_earthquake": item.AssociatedEarthquake,
+				"tsunami_intensity": item.TsunamiIntensity,
 			},
 		}
 
