@@ -3,6 +3,7 @@ package database
 import (
 	"AegisGeo/internal/models"
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -85,6 +86,12 @@ func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 			geom = EXCLUDED.geom,
 			details = EXCLUDED.details;
 	`
+	// Serialization
+	detailsJSON, err := json.Marshal(e.Details)
+	if err != nil {
+		detailsJSON = []byte("{}")
+	}
+
 	_, err = db.Pool.Exec(ctx, query,
 		e.ID,
 		e.Source,
@@ -99,7 +106,7 @@ func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 		e.Latitude,
 		e.Longitude,
 		e.Latitude,
-		e.Details,
+		detailsJSON,
 	)
 	return err
 }
