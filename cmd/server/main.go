@@ -1,12 +1,15 @@
 package main
 
 import (
+	"AegisGeo/internal/database"
 	"AegisGeo/internal/ingestion"
 	"AegisGeo/internal/store"
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -19,6 +22,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("Fail to load .env: %s", err)
 	}
+
+	// Initialize DB
+	dbURL := os.Getenv("DATABASE_URL")
+	db, err := database.NewPostgresDB(dbURL)
+	if err != nil {
+		log.Fatalf("Database built failed: %v", err)
+	}
+	defer db.Close()
+	fmt.Println("PostgreSQL connection is online.")
 
 	// Read env variables
 	cwaURL := os.Getenv("CWA_API_URL")
@@ -57,8 +69,16 @@ func main() {
 				return
 			}
 			for _, event := range events {
-				cache.Set(event)
+				cache.Set(event) // To memory
 				fmt.Printf("[%s Engine] Added: %v\n", c.GetName(), event.ID)
+
+				// To PostgresSQL
+				ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+				err := db.SaveEvent(ctx, event)
+				cancel()
+				if err != nil {
+					fmt.Printf("[Fail to write to DB] ID: %s, error: %v", event.ID, err)
+				}
 			}
 		}()
 	}
@@ -68,10 +88,9 @@ func main() {
 	fmt.Println("\nAll data has been recorded")
 
 	// Get all data
-	allEvents := cache.GetAll()
-	fmt.Printf("There are %d event(s) in the database!\n", len(allEvents))
+	fmt.Printf("There are %d event(s) in the memory!\n", len(cache.GetAll()))
 
-	for _, e := range allEvents {
+	for _, e := range cache.GetAll() {
 		localTimeStr := e.Timestamp.Format("2006-01-02 15:04:06 (MST)")
 		fmt.Printf("   - [%s] Type: %s, Magnitude: %.1f, Time: %v, Location: %s\n", e.ID, e.Type, e.Magnitude, localTimeStr, e.Location)
 	}
