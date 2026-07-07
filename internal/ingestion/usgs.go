@@ -123,29 +123,6 @@ func (u *UsgsClient) FetchLatest() ([]models.Event, error) {
 		}
 
 		events = append(events, standardEvent)
-
-		// if there is a tsunami accompanies with earthquake, tsunami = 1
-		if f.Properties.Tsunami == 1 {
-			tsunamiEvent := models.Event{
-				ID:        fmt.Sprintf("USGS-TSU-%s", f.ID),
-				Source:    "USGS",
-				Type:      "Tsunami",
-				Title:     fmt.Sprintf("Tsunami Warning: %s", f.Properties.Title),
-				Magnitude: 0.0,
-				Depth:     0.0,
-				Timestamp: t,
-				Country:   standardEvent.Country,
-				Location:  f.Properties.Place,
-				Latitude:  f.Geometry.Coordinates[1],
-				Longitude: f.Geometry.Coordinates[0],
-				Details: map[string]any{
-					"trigger_earthquake_mag": f.Properties.Mag,
-					"tsunami_warning_active": true,
-					"bulletin_source":        "PTWC",
-				},
-			}
-			events = append(events, tsunamiEvent)
-		}
 	}
 	return events, nil
 }
