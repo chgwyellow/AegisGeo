@@ -42,10 +42,31 @@ func (db *PostgresDB) Close() {
 
 // Save event via SQL Upsert
 func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
+
+	// Check if there is any data whose time is less then 60 seconds
+	// And physical distance is less than 50 km
+	collisionQuery := `
+		SELECT id, source FROM geo_events
+		WHERE event_timestamp BETWEEN $1::TIMESTAMPTZ - INTERVAL '60 SECOND' AND $1::TIMESTAMPTZ + INTERVAL '60 SECOND'
+		  AND ST_DistanceSphere(geom, ST_SetSRID(ST_MakePoint($2, $3), 4326)) <= 50000
+		LIMIT 1;
+	`
+
+	var existingID, existingSource string
+	// If there is more than one row return, err is not nil
+	// Which means there are duplicate data
+	err := db.Pool.QueryRow(ctx, collisionQuery, e.Timestamp, e.Longitude, e.Latitude).Scan(&existingID, &existingSource)
+
+	if err != nil {
+		if (existingSource == "CWA" || existingSource == "JMA") && e.Source == "USGS" {
+			return nil
+		}
+	}
+
 	// ON CONFLICT (id) DO UPDATE
 	query := `
-		INSERT INTO geo_events (id, source, event_type, title, magnitude, depth, event_timestamp, country, location, latitude, longitude)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		INSERT INTO geo_events (id, source, event_type, title, magnitude, depth, event_timestamp, country, location, geom)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, ST_SetSRID(ST_MakePoint($10, $11), 4326))
 		ON CONFLICT (id) 
 		DO UPDATE SET 
 			magnitude = EXCLUDED.magnitude,
@@ -53,10 +74,8 @@ func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 			event_timestamp = EXCLUDED.event_timestamp,
 			title = EXCLUDED.title,
 			location = EXCLUDED.location,
-			latitude = EXCLUDED.latitude,
-			longitude = EXCLUDED.longitude;
 	`
-	_, err := db.Pool.Exec(ctx, query,
+	_, err = db.Pool.Exec(ctx, query,
 		e.ID,
 		e.Source,
 		e.Type,
