@@ -59,6 +59,7 @@ func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 
 	if err != nil {
 		if (existingSource == "CWA" || existingSource == "JMA") && e.Source == "USGS" {
+			fmt.Printf("Eliminate duplicated events：USGS-%s and %s-%s \n", e.ID, existingSource, existingID)
 			return nil
 		}
 	}
