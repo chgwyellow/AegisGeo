@@ -51,6 +51,9 @@ func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 		  AND ST_DistanceSphere(geom, ST_SetSRID(ST_MakePoint($2, $3), 4326)) <= 50000
 		LIMIT 1;
 	`
+	// ST_MakePoint create a matrix point for long and lat
+	// ST_SetSRID provide the earth physical model, 4326 is WGS84 coordinate system
+	// ST_DistanceSphere calculates true distance of two coordinates, the unit is meter
 
 	var existingID, existingSource string
 	// If there is more than one row return, err is nil
@@ -66,8 +69,8 @@ func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 
 	// ON CONFLICT (id) DO UPDATE
 	query := `
-		INSERT INTO geo_events (id, source, event_type, title, magnitude, depth, event_timestamp, country, location, geom)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, ST_SetSRID(ST_MakePoint($10, $11), 4326))
+		INSERT INTO geo_events (id, source, event_type, title, magnitude, depth, event_timestamp, country, location, longitude, latitude, geom)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, ST_SetSRID(ST_MakePoint($10, $11), 4326))
 		ON CONFLICT (id) 
 		DO UPDATE SET 
 			magnitude = EXCLUDED.magnitude,
@@ -86,8 +89,8 @@ func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 		e.Timestamp,
 		e.Country,
 		e.Location,
-		e.Latitude,
 		e.Longitude,
+		e.Latitude,
 	)
 	return err
 }

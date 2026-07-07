@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS geo_events (
 	event_timestamp timestamptz NOT NULL,
 	country varchar(10) NOT NULL,
 	location varchar(255) NOT NULL,
+	longitude NUMERIC(6, 3) NOT NULL,
+	latitude NUMERIC(6, 3) NOT NULL,
 	geom GEOMETRY(Point, 4326),
 	created_at timestamptz DEFAULT now()
 );
