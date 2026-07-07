@@ -77,9 +77,9 @@ func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 			depth = EXCLUDED.depth,
 			event_timestamp = EXCLUDED.event_timestamp,
 			title = EXCLUDED.title,
-			location = EXCLUDED.location
+			location = EXCLUDED.location,
 			longitude = EXCLUDED.longitude,
-			latitude = EXCLUDED.latitude,  
+			latitude = EXCLUDED.latitude,
 			geom = EXCLUDED.geom;
 	`
 	_, err = db.Pool.Exec(ctx, query,
