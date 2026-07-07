@@ -24,6 +24,7 @@ var countryDictionary = map[string]string{
 	"NEW MEXICO":     "US",
 	"PUERTO RICO":    "US",
 	"VIRGIN ISLANDS": "US",
+	"OKLAHOMA":       "US",
 
 	// Countries
 	"TIMOR LESTE": "TL",
@@ -99,6 +100,11 @@ func (u *UsgsClient) FetchLatest() ([]models.Event, error) {
 		var depth float64
 		if len(f.Geometry.Coordinates) >= 3 {
 			depth = f.Geometry.Coordinates[2]
+		}
+
+		detectedCountry := parseCountryFromPlace(f.Properties.Title)
+		if detectedCountry == "OCEAN" {
+			detectedCountry = parseCountryFromPlace(f.Properties.Place)
 		}
 
 		standardEvent := models.Event{
