@@ -53,11 +53,11 @@ func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 	`
 
 	var existingID, existingSource string
-	// If there is more than one row return, err is not nil
+	// If there is more than one row return, err is nil
 	// Which means there are duplicate data
 	err := db.Pool.QueryRow(ctx, collisionQuery, e.Timestamp, e.Longitude, e.Latitude).Scan(&existingID, &existingSource)
 
-	if err != nil {
+	if err == nil {
 		if (existingSource == "CWA" || existingSource == "JMA") && e.Source == "USGS" {
 			fmt.Printf("Eliminate duplicated events：USGS-%s and %s-%s \n", e.ID, existingSource, existingID)
 			return nil
@@ -74,7 +74,7 @@ func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 			depth = EXCLUDED.depth,
 			event_timestamp = EXCLUDED.event_timestamp,
 			title = EXCLUDED.title,
-			location = EXCLUDED.location,
+			location = EXCLUDED.location
 	`
 	_, err = db.Pool.Exec(ctx, query,
 		e.ID,

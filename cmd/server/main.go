@@ -77,7 +77,7 @@ func main() {
 				err := db.SaveEvent(ctx, event)
 				cancel()
 				if err != nil {
-					fmt.Printf("[Fail to write to DB] ID: %s, error: %v", event.ID, err)
+					fmt.Printf("[Fail to write to DB] ID: %s, error: %v\n", event.ID, err)
 				}
 			}
 		}()
