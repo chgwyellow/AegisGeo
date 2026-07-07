@@ -19,10 +19,11 @@ CREATE TABLE IF NOT EXISTS geo_events (
 CREATE INDEX IF NOT EXISTS idx_event_timestamp ON
 geo_events(event_timestamp DESC);
 
+CREATE INDEX IF NOT EXISTS idx_geo_events_geom ON geo_events USING GIST (geom);
+
 TRUNCATE TABLE geo_events;
 
 SELECT * FROM geo_events ge ;
 
 CREATE EXTENSION IF NOT EXISTS postgis;
 
-CREATE INDEX IF NOT EXISTS idx_geo_events_geom ON geo_events USING GIST (geom);

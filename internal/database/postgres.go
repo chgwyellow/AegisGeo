@@ -70,7 +70,7 @@ func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 	// ON CONFLICT (id) DO UPDATE
 	query := `
 		INSERT INTO geo_events (id, source, event_type, title, magnitude, depth, event_timestamp, country, location, longitude, latitude, geom)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, ST_SetSRID(ST_MakePoint($10, $11), 4326))
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, ST_SetSRID(ST_MakePoint($12, $13), 4326))
 		ON CONFLICT (id) 
 		DO UPDATE SET 
 			magnitude = EXCLUDED.magnitude,
@@ -89,6 +89,8 @@ func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 		e.Timestamp,
 		e.Country,
 		e.Location,
+		e.Longitude,
+		e.Latitude,
 		e.Longitude,
 		e.Latitude,
 	)
