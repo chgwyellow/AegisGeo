@@ -8,8 +8,6 @@ CREATE TABLE IF NOT EXISTS geo_events (
 	event_timestamp timestamptz NOT NULL,
 	country varchar(10) NOT NULL,
 	location varchar(255) NOT NULL,
-	latitude numeric(6,3) NOT NULL,
-	longitude numeric(6,3) NOT NULL,
 	created_at timestamptz DEFAULT now()
 );
 
