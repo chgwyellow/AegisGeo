@@ -2,9 +2,10 @@ package ingestion
 
 import (
 	"AegisGeo/internal/models"
-	"aegisgeo/internal/models"
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 )
@@ -63,8 +64,15 @@ func (c *CwaRainClient) FetchLatest() ([]models.Event, error) {
 		return nil, fmt.Errorf("%v Server return fail code: %d", c.GetName(), resp.StatusCode)
 	}
 
+	// Store original data
+	var logBuffer bytes.Buffer
+
+	// json read data, TeeReader sends data to logBuffer as copied one
+	teeReader := io.TeeReader(resp.Body, &logBuffer)
+
 	var raw cwaRainStationResponse
-	if err := json.NewDecoder(resp.Body).Decode(&raw); err != nil {
+	if err := json.NewDecoder(teeReader).Decode(&raw); err != nil {
+		fmt.Printf("[%s] JSON Decode Failed! Raw dirty data:\n%s\n", c.GetName(), logBuffer.String())
 		return nil, err
 	}
 
