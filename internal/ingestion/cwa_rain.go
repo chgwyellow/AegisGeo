@@ -79,7 +79,10 @@ func (c *CwaRainClient) FetchLatest() ([]models.Event, error) {
 	events := make([]models.Event, 0, len(raw.Records.Station))
 	for _, s := range raw.Records.Station {
 		currentRain := s.RainfallElement.Now.Precipitation
-		t, _ := time.Parse("2006-01-02 15:04:06", s.ObsTime.DateTime)
+		t, err := time.Parse(time.RFC3339, s.ObsTime.DateTime)
+		if err != nil {
+			return nil, fmt.Errorf("fail to parse CWA rain timestamp [%s]: %v", s.ObsTime.DateTime, err)
+		}
 		alertLevel := "None"
 
 		if currentRain >= 40.0 {
