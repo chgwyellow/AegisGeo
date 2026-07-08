@@ -46,6 +46,8 @@ var countryDictionary = map[string]string{
 	"ARGENTINA":   "AR",
 	"VENEZUELA":   "VE",
 	"ETHIOPIA":    "ET",
+	"PERU":        "PE",
+	"AFGHANISTAN": "AF",
 }
 
 type UsgsClient struct {
