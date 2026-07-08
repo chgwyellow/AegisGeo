@@ -86,7 +86,7 @@ graph TD
 4. **NOAA (National Oceanic and Atmospheric Administration)**:
    - Fetches historical and real-time global tsunami telemetry data.
 5. **NWS (National Weather Service)**:
-   - Fetches active severe weather alerts (e.g., Tornado, Severe Thunderstorm watches and warnings) across the US.
+   - Fetches active severe weather alerts (e.g., Tornado, Severe Thunderstorm watches and warnings) across the US. Identifies requests via a contact email address in the `User-Agent` header, configured via the `Email` environment variable.
 
 ### Deduplication and Conflict Resolution Logic
 
@@ -151,6 +151,7 @@ USGS_API_URL=https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.g
 JMA_API_URL=https://api.p2pquake.net/v2/history?codes=551&limit=30
 NOAA_API_URL=https://www.ngdc.noaa.gov/hazel/data/v1/hazards/tsunami/events?minYear=2020
 NWS_API_URL=https://api.weather.gov/alerts/active?event=Tornado%20Watch,Tornado%20Warning,Severe%20Thunderstorm%20Watch,Severe%20Thunderstorm%20Warning
+Email=your_email@example.com
 ```
 
 ### 3. Run the Server
