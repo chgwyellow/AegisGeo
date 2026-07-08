@@ -92,7 +92,7 @@ graph TD
 
 1. **Spatial and Temporal Collision Detection**: Before storing an event into the database, the system calculates its physical distance to existing events of the same `event_type` using PostGIS's `ST_DistanceSphere` function. If another event occurred within **60 seconds** and is within **50 kilometers**, it is identified as a collision.
 2. **Source-Based Deduplication**: When an earthquake collision is detected, if the database already contains a local high-precision event from `CWA` or `JMA`, and the new event is sourced from `USGS`, the system will filter out and discard the `USGS` event to ensure data accuracy.
-3. **Upsert (ON CONFLICT)**: If an event `ID` and `event_type` combination already exists, the database triggers `ON CONFLICT (id, event_type) DO UPDATE` to update variables such as magnitude, depth, timestamp, title, location, geom, and custom telemetry `details` (stored as JSONB).
+3. **Upsert (ON CONFLICT)**: If an event `ID` and `event_type` combination already exists, the database triggers `ON CONFLICT (id, event_type) DO UPDATE` to update variables such as magnitude, depth, timestamp, title, country, location, geom, and custom telemetry `details` (stored as JSONB).
 
 ---
 
