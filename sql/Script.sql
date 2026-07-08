@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS geo_events;
 
 CREATE TABLE IF NOT EXISTS geo_events (
-	id varchar(64) PRIMARY KEY,
+	id varchar(255) PRIMARY KEY,
 	source varchar(10) NOT NULL ,
 	event_type varchar(50) NOT NULL,
 	title text NOT NULL,
