@@ -124,7 +124,7 @@ func (u *UsgsClient) FetchLatest() ([]models.Event, error) {
 			Magnitude: f.Properties.Mag,
 			Depth:     depth,
 			Timestamp: t,
-			Country:   parseCountryFromPlace(f.Properties.Place),
+			Country:   detectedCountry,
 			Location:  f.Properties.Place,
 			Latitude:  f.Geometry.Coordinates[1],
 			Longitude: f.Geometry.Coordinates[0],
