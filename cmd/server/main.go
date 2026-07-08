@@ -39,8 +39,9 @@ func main() {
 	usgsURL := os.Getenv("USGS_API_URL")
 	jmaURL := os.Getenv("JMA_API_URL")
 	noaaURL := os.Getenv("NOAA_API_URL")
+	nwsURL := os.Getenv("NWS_API_URL")
 
-	if cwaURL == "" || cwaToken == "" || usgsURL == "" || jmaURL == "" || noaaURL == "" || cwaRainURL == "" {
+	if cwaURL == "" || cwaToken == "" || usgsURL == "" || jmaURL == "" || noaaURL == "" || cwaRainURL == "" || nwsURL == "" {
 		log.Fatal("Get wrong in environment setting!")
 	}
 

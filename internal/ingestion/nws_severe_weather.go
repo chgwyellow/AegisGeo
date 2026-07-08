@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -69,8 +70,14 @@ func (n *NwsSevereWeatherClient) FetchLatest() ([]models.Event, error) {
 	for _, f := range raw.Features {
 		p := f.Properties
 
+		cleanID := p.ID
+		idParts := strings.SplitN(p.ID, ":", 3)
+		if len(idParts) == 3 {
+			cleanID = idParts[2]
+		}
+
 		standardEvent := models.Event{
-			ID:        fmt.Sprintf("NWS-SEV-%s", p.ID),
+			ID:        fmt.Sprintf("NWS-SEV-%s", cleanID),
 			Source:    "NWS",
 			Type:      "SevereWeather",
 			Title:     p.Headline,
@@ -84,6 +91,7 @@ func (n *NwsSevereWeatherClient) FetchLatest() ([]models.Event, error) {
 			Details: map[string]any{
 				"event_type":        p.Event,
 				"storm_description": p.Description,
+				"original_urn":      p.ID,
 			},
 		}
 		events = append(events, standardEvent)
