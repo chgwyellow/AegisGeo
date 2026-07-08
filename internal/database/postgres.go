@@ -84,7 +84,8 @@ func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 			longitude = EXCLUDED.longitude,
 			latitude = EXCLUDED.latitude,
 			geom = EXCLUDED.geom,
-			details = EXCLUDED.details;
+			details = EXCLUDED.details,
+			country = EXCLUDED.country;
 	`
 	// Serialization
 	detailsJSON, err := json.Marshal(e.Details)
