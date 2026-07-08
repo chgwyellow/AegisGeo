@@ -76,7 +76,7 @@ func (c *CwaRainClient) FetchLatest() ([]models.Event, error) {
 		return nil, err
 	}
 
-	events := make([]models.Event, 0) // We don't know the accurate row count.
+	events := make([]models.Event, 0, len(raw.Records.Station))
 	for _, s := range raw.Records.Station {
 		currentRain := s.RainfallElement.Now.Precipitation
 		t, _ := time.Parse("2006-01-02 15:04:06", s.ObsTime.DateTime)
