@@ -38,6 +38,15 @@ var countryDictionary = map[string]string{
 	"INDONESIA":   "ID",
 	"CHINA":       "CN",
 	"RUSSIA":      "RU",
+	"Nicaragua":   "NI",
+	"Pakistan":    "PK",
+	"Puerto Rico": "PR",
+	"Tajikistan":  "TJ",
+	"Greece":      "GR",
+	"New Zealand": "NZ",
+	"Argentina":   "AR",
+	"Venezuela":   "VE",
+	"Ethiopia":    "ET",
 }
 
 type UsgsClient struct {
