@@ -53,6 +53,7 @@ func main() {
 		ingestion.NewUsgsClient(usgsURL),
 		ingestion.NewJmaClient(jmaURL),
 		ingestion.NewTsunamiClient(noaaURL),
+		ingestion.NewCwaRainClient(cwaRainURL, cwaToken),
 	}
 
 	ticker := time.NewTicker(30 * time.Second)
