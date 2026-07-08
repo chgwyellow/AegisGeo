@@ -33,13 +33,14 @@ func main() {
 	fmt.Println("PostgreSQL connection is online.")
 
 	// Read env variables
-	cwaURL := os.Getenv("CWA_API_URL")
+	cwaURL := os.Getenv("CWA_EQK_URL")
+	cwaRainURL := os.Getenv("CWA_RAIN_URL")
 	cwaToken := os.Getenv("CWA_TOKEN")
 	usgsURL := os.Getenv("USGS_API_URL")
 	jmaURL := os.Getenv("JMA_API_URL")
 	noaaURL := os.Getenv("NOAA_API_URL")
 
-	if cwaURL == "" || cwaToken == "" || usgsURL == "" || jmaURL == "" {
+	if cwaURL == "" || cwaToken == "" || usgsURL == "" || jmaURL == "" || noaaURL == "" || cwaRainURL == "" {
 		log.Fatal("Get wrong in environment setting!")
 	}
 
