@@ -55,6 +55,7 @@ func main() {
 		ingestion.NewJmaClient(jmaURL),
 		ingestion.NewTsunamiClient(noaaURL),
 		ingestion.NewCwaRainClient(cwaRainURL, cwaToken),
+		ingestion.NewNwsSevereWeatherClient(nwsURL),
 	}
 
 	ticker := time.NewTicker(30 * time.Second)
