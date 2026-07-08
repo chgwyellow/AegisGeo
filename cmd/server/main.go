@@ -40,6 +40,7 @@ func main() {
 	jmaURL := os.Getenv("JMA_API_URL")
 	noaaURL := os.Getenv("NOAA_API_URL")
 	nwsURL := os.Getenv("NWS_API_URL")
+	email := os.Getenv("Email")
 
 	if cwaURL == "" || cwaToken == "" || usgsURL == "" || jmaURL == "" || noaaURL == "" || cwaRainURL == "" || nwsURL == "" {
 		log.Fatal("Get wrong in environment setting!")
@@ -55,7 +56,7 @@ func main() {
 		ingestion.NewJmaClient(jmaURL),
 		ingestion.NewTsunamiClient(noaaURL),
 		ingestion.NewCwaRainClient(cwaRainURL, cwaToken),
-		ingestion.NewNwsSevereWeatherClient(nwsURL),
+		ingestion.NewNwsSevereWeatherClient(nwsURL, email),
 	}
 
 	ticker := time.NewTicker(30 * time.Second)

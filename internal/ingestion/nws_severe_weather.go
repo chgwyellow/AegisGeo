@@ -13,11 +13,13 @@ import (
 
 type NwsSevereWeatherClient struct {
 	apiURL string
+	Email  string
 }
 
-func NewNwsSevereWeatherClient(apiURL string) *NwsSevereWeatherClient {
+func NewNwsSevereWeatherClient(apiURL string, email string) *NwsSevereWeatherClient {
 	return &NwsSevereWeatherClient{
 		apiURL: apiURL,
+		Email:  email,
 	}
 }
 
@@ -43,7 +45,8 @@ func (n *NwsSevereWeatherClient) FetchLatest() ([]models.Event, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Fail to sent request: %v", err)
 	}
-	req.Header.Set("User-Agent", "AegisGeoSevereWeatherEngine/1.0 (contact@aegisgeo.com)")
+	userAgent := fmt.Sprintf("AegisGeoSevereWeatherEngine/1.0 (contact:%s)", n.Email)
+	req.Header.Set("User-Agent", userAgent)
 
 	client := &http.Client{} // Create customized client
 	resp, err := client.Do(req)
