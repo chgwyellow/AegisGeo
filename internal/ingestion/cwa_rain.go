@@ -34,15 +34,15 @@ type cwaRainStationResponse struct {
 			GeoInfo     struct {
 				Coordinates []struct {
 					CoordinateName   string  `json:"CoordinateName"`
-					StationLongitude float64 `json:"StationLongitude"`
-					StationLatitude  float64 `json:"StationLatitude"`
+					StationLongitude float64 `json:"StationLongitude,string"`
+					StationLatitude  float64 `json:"StationLatitude,string"`
 				} `json:"Coordinates"`
 				CountyName string `json:"CountyName"`
 				TownName   string `json:"TownName"`
 			} `json:"GeoInfo"`
 			RainfallElement struct {
 				Now struct {
-					Precipitation float64 `json:"Precipitation"`
+					Precipitation float64 `json:"Precipitation,string"`
 				} `json:"Now"`
 			} `json:"RainfallElement"`
 			ObsTime struct {
