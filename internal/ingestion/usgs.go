@@ -22,7 +22,6 @@ var countryDictionary = map[string]string{
 	"COLORADO":       "US",
 	"CALIFORNIA":     "US",
 	"NEW MEXICO":     "US",
-	"PUERTO RICO":    "US",
 	"VIRGIN ISLANDS": "US",
 	"OKLAHOMA":       "US",
 
@@ -38,15 +37,15 @@ var countryDictionary = map[string]string{
 	"INDONESIA":   "ID",
 	"CHINA":       "CN",
 	"RUSSIA":      "RU",
-	"Nicaragua":   "NI",
-	"Pakistan":    "PK",
-	"Puerto Rico": "PR",
-	"Tajikistan":  "TJ",
-	"Greece":      "GR",
-	"New Zealand": "NZ",
-	"Argentina":   "AR",
-	"Venezuela":   "VE",
-	"Ethiopia":    "ET",
+	"NICARAGUA":   "NI",
+	"PAKISTAN":    "PK",
+	"PUERTO RICO": "PR",
+	"TAJIKISTAN":  "TJ",
+	"GREECE":      "GR",
+	"NEW ZEALAND": "NZ",
+	"ARGENTINA":   "AR",
+	"VENEZUELA":   "VE",
+	"ETHIOPIA":    "ET",
 }
 
 type UsgsClient struct {
