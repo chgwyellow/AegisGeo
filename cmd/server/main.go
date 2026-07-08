@@ -55,7 +55,7 @@ func main() {
 		ingestion.NewUsgsClient(usgsURL),
 		ingestion.NewJmaClient(jmaURL),
 		ingestion.NewTsunamiClient(noaaURL),
-		ingestion.NewCwaRainClient(cwaRainURL, cwaToken),
+		// ingestion.NewCwaRainClient(cwaRainURL, cwaToken),
 		ingestion.NewNwsSevereWeatherClient(nwsURL, email),
 	}
 

@@ -41,7 +41,15 @@ type nwsAlertResponse struct {
 }
 
 func (n *NwsSevereWeatherClient) FetchLatest() ([]models.Event, error) {
-	req, err := http.NewRequest("GET", n.apiURL, nil)
+	now := time.Now().UTC()
+	todayMidnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+
+	startTimeStr := todayMidnight.Format("2006-01-02T15:04:05Z")
+
+	dynamicURL := fmt.Sprintf("https://api.weather.gov/alerts?start=%s&event=Tornado%%20Watch,Tornado%%20Warning,Severe%%20Thunderstorm%%20Watch,Severe%%20Thunderstorm%%20Warning",
+		startTimeStr)
+
+	req, err := http.NewRequest("GET", dynamicURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Fail to sent request: %v", err)
 	}

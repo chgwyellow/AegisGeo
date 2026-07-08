@@ -24,6 +24,7 @@ var countryDictionary = map[string]string{
 	"NEW MEXICO":     "US",
 	"VIRGIN ISLANDS": "US",
 	"OKLAHOMA":       "US",
+	"NEVADA":         "US",
 
 	// Countries
 	"TIMOR LESTE": "TL",
