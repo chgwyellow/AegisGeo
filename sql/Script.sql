@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS geo_events (
 	depth NUMERIC(6, 2) NOT NULL,
 	event_timestamp timestamptz NOT NULL,
 	country varchar(10) NOT NULL,
-	location varchar(255) NOT NULL,
+	location text NOT NULL,
 	longitude NUMERIC(6, 3) NOT NULL,
 	latitude NUMERIC(6, 3) NOT NULL,
 	geom GEOMETRY(Point, 4326),
