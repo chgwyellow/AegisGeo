@@ -1,16 +1,12 @@
 # AegisGeo
 
+![Go](https://img.shields.io/badge/Go-1.26.4-00ADD8?logo=go&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-PostGIS-4169E1?logo=postgresql&logoColor=white)
+![Version](https://img.shields.io/badge/version-1.7.0-brightgreen)
+![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows&logoColor=white)
+![Started](https://img.shields.io/badge/started-July%202026-blue)
+
 AegisGeo is a global natural disaster and meteorological/geological anomaly monitoring backend engine built in Go. The system leverages concurrency to simultaneously fetch real-time data from multiple monitoring agencies (CWA, USGS, JMA, NOAA, NWS), cleanse and format the inputs into a unified model, perform spatial collision deduplication via PostgreSQL + PostGIS, and save the events to both a database and an in-memory cache.
-
----
-
-## Tech Stack
-
-- **Programming Language**: Go 1.26.4
-- **Database**: PostgreSQL (requires **PostGIS** extension for physical distance calculation of geographical coordinates)
-- **Database Driver**: `github.com/jackc/pgx/v5` (`pgxpool` connection pool)
-- **Environment Variables**: `github.com/joho/godotenv`
-- **Concurrency Control**: Native `sync.WaitGroup` and `sync.RWMutex` (for thread-safe memory cache operations)
 
 ---
 
@@ -20,63 +16,54 @@ The core data pipeline of AegisGeo can be divided into four steps: initializatio
 
 ```mermaid
 graph TD
-    %% Source Definitions
-    subgraph sources ["Data Sources (HTTP API)"]
-        USGS_API[USGS API]
-        CWA_EQ_API[CWA Earthquake API]
-        JMA_API[JMA API]
-        NOAA_API[NOAA Tsunami API]
-        CWA_RAIN_API[CWA Rainfall API]
-        NWS_API[NWS Severe Weather API]
-        VOLCANO_API[USGS Volcano Alerts API]
-    end
+    USGS_API[USGS Earthquake API] --> G1[UsgsClient]
+    CWA_EQ_API[CWA Earthquake API] --> G2[CwaClient]
+    JMA_API[JMA Earthquake API] --> G3[JmaClient]
+    NOAA_API[NOAA Tsunami API] --> G4[TsunamiClient]
+    CWA_RAIN_API[CWA Rainfall API] --> G5[CwaRainClient]
+    NWS_API[NWS Severe Weather API] --> G6[NwsSevereWeatherClient]
+    VOLCANO_API[USGS Volcano API] --> G7[VolcanoClient]
 
-    %% Ingestion Layer
-    subgraph ingestion ["Ingestion Layer (Goroutines)"]
-        G1[Goroutine: UsgsClient]
-        G2[Goroutine: CwaClient]
-        G3[Goroutine: JmaClient]
-        G4[Goroutine: TsunamiClient]
-        G5[Goroutine: CwaRainClient]
-        G6[Goroutine: NwsSevereWeatherClient]
-        G7[Goroutine: VolcanoClient]
-    end
+    G1 --> Std[Standardize to Event]
+    G2 --> Std
+    G3 --> Std
+    G4 --> Std
+    G5 --> Std
+    G6 --> Std
+    G7 --> Std
 
-    %% Connection to Ingestion
-    USGS_API -->|HTTP GET / JSON| G1
-    CWA_EQ_API -->|HTTP GET / Authorization Header| G2
-    JMA_API -->|HTTP GET / JSON| G3
-    NOAA_API -->|HTTP GET / JSON| G4
-    CWA_RAIN_API -->|HTTP GET / Authorization Header| G5
-    NWS_API -->|HTTP GET / User-Agent Header / JSON| G6
-    VOLCANO_API -->|HTTP GET / XML| G7
+    Std --> Cache["In-Memory Cache (MemoryCache)"]
+    Cache --> Check{"Collision Check\n(Distance <= 50km\nTime Diff < 60s)"}
 
-    %% Core Process
-    subgraph core ["Core Telemetry Engine (Standardization & Verification)"]
-        Cache["In-Memory Cache MemoryCache <br>(sync.RWMutex)"]
-        DB_Check{PostgreSQL + PostGIS <br> Spatial Collision Check}
-        SaveDB[(PostgreSQL)]
-    end
+    Check -->|USGS Duplicate| Drop[Discard USGS Event]
+    Check -->|New Event| DB[(PostgreSQL)]
+    Check -->|ID Conflict| Upsert[ON CONFLICT DO UPDATE]
 
-    G1 -->|Standardize to Event| Cache
-    G2 -->|Standardize to Event| Cache
-    G3 -->|Standardize to Event| Cache
-    G4 -->|Standardize to Event| Cache
-    G5 -->|Standardize to Event| Cache
-    G6 -->|Standardize to Event| Cache
-    G7 -->|Standardize to Event| Cache
+    %% Source API Colors
+    style USGS_API fill:#4a7c59,stroke:#2d5a3a,color:#fff
+    style CWA_EQ_API fill:#8b6914,stroke:#6b4f10,color:#fff
+    style JMA_API fill:#c0392b,stroke:#962d22,color:#fff
+    style NOAA_API fill:#2471a3,stroke:#1a5276,color:#fff
+    style CWA_RAIN_API fill:#5b7fa5,stroke:#3d5a80,color:#fff
+    style NWS_API fill:#7d3c98,stroke:#5b2c6f,color:#fff
+    style VOLCANO_API fill:#d35400,stroke:#a04000,color:#fff
 
-    G1 -->|Write/Verify| DB_Check
-    G2 -->|Write/Verify| DB_Check
-    G3 -->|Write/Verify| DB_Check
-    G4 -->|Write/Verify| DB_Check
-    G5 -->|Write/Verify| DB_Check
-    G6 -->|Write/Verify| DB_Check
-    G7 -->|Write/Verify| DB_Check
+    %% Client Goroutine Colors
+    style G1 fill:#5dade2,stroke:#2e86c1,color:#fff
+    style G2 fill:#f0b27a,stroke:#e67e22,color:#fff
+    style G3 fill:#e74c3c,stroke:#c0392b,color:#fff
+    style G4 fill:#3498db,stroke:#2471a3,color:#fff
+    style G5 fill:#85c1e9,stroke:#5dade2,color:#fff
+    style G6 fill:#a569bd,stroke:#7d3c98,color:#fff
+    style G7 fill:#e67e22,stroke:#d35400,color:#fff
 
-    DB_Check -->|Distance > 50km <br> or Time Diff > 60s| SaveDB
-    DB_Check -->|Duplicate USGS Event| Drop[Discard USGS Event]
-    DB_Check -->|ID Conflict| Upsert["ON CONFLICT <br> DO UPDATE"]
+    %% Core Process Colors
+    style Std fill:#1abc9c,stroke:#16a085,color:#fff
+    style Cache fill:#2ecc71,stroke:#27ae60,color:#fff
+    style Check fill:#f39c12,stroke:#d68910,color:#fff
+    style Drop fill:#95a5a6,stroke:#7f8c8d,color:#fff
+    style DB fill:#2c3e50,stroke:#1a252f,color:#fff
+    style Upsert fill:#34495e,stroke:#2c3e50,color:#fff
 ```
 
 ### Ingestion Clients and Data Sources
@@ -179,3 +166,9 @@ The application will:
 3. Spawn isolated Goroutines for `CWA Earthquake`, `CWA Rain`, `USGS`, `JMA`, `NOAA Tsunami`, `NWS Severe Weather`, and `USGS Volcano` clients concurrently.
 4. Fetch raw payloads, convert them to standard events, write to the database (performing PostGIS deduplication), and cache them in memory.
 5. Print all processed events cached in memory (ordered by timestamp descending) to the console.
+
+## Tech Stack
+
+- **Database Driver**: `github.com/jackc/pgx/v5` (`pgxpool` connection pool)
+- **Environment Variables**: `github.com/joho/godotenv`
+- **Concurrency Control**: Native `sync.WaitGroup` and `sync.RWMutex` (for thread-safe memory cache operations)
