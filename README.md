@@ -151,7 +151,7 @@ VOLCANO_API_URL=https://volcanoes.usgs.gov/hans-public/rss/cap/
 Email=your_email@example.com
 ```
 
-### 3. Run the Server
+### 3. Run the Ingestion
 
 Execute the following command in the root directory:
 
@@ -165,7 +165,7 @@ The application will:
 2. Connect and ping the PostgreSQL database.
 3. Spawn isolated Goroutines for `CWA Earthquake`, `CWA Rain`, `USGS`, `JMA`, `NOAA Tsunami`, `NWS Severe Weather`, and `USGS Volcano` clients concurrently.
 4. Fetch raw payloads, convert them to standard events, write to the database (performing PostGIS deduplication), and cache them in memory.
-5. Print all processed events cached in memory (ordered by timestamp descending) to the console.
+5. Print the latest 5 anomaly events cached in memory (ordered by timestamp descending) to the console and exit. This single-cycle design is optimized for cron schedulers, serverless functions (e.g. AWS Lambda, Google Cloud Functions), or CI/CD pipelines (e.g. GitHub Actions).
 
 ## Tech Stack
 

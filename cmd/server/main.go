@@ -60,61 +60,54 @@ func main() {
 		ingestion.NewNwsSevereWeatherClient(nwsURL, email),
 		ingestion.NewVolcanoClient(volURL),
 	}
+	fmt.Println("Start Ingestion Cycle...")
 
-	ticker := time.NewTicker(5 * time.Minute)
-	defer ticker.Stop()
+	fmt.Println("==================================================")
+	fmt.Printf("AegisGeo Telemetry Cycle Started at %v\n", time.Now().Format("2006-01-02 15:04:06"))
+	fmt.Println("==================================================")
 
-	fmt.Println("Start Daemon, 24/7 365 Monitoring...")
+	var wg sync.WaitGroup
+	wg.Add(len(clients))
 
-	for range ticker.C {
-		fmt.Println("==================================================")
-		fmt.Printf("AegisGeo Telemetry Cycle Started at %v\n", time.Now().Format("2006-01-02 15:04:06"))
-		fmt.Println("==================================================")
+	for _, client := range clients {
+		c := client
 
-		var wg sync.WaitGroup
-		wg.Add(len(clients))
+		go func() {
+			defer wg.Done()
 
-		for _, client := range clients {
-			c := client
-
-			go func() {
-				defer wg.Done()
-
-				events, err := c.FetchLatest()
-				if err != nil {
-					fmt.Printf("[✗] [%s Engine] failed: %v\n", c.GetName(), err)
-					return
-				}
-				for _, event := range events {
-					cache.Set(event)
-
-					ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-					err := db.SaveEvent(ctx, event)
-					cancel()
-					if err != nil {
-						fmt.Printf("[✗] [%s Engine] DB Write Error ID: %s, error: %v\n", c.GetName(), event.ID, err)
-					}
-				}
-				fmt.Printf("[✓] [%s Engine] successfully processed %d events\n", c.GetName(), len(events))
-			}()
-		}
-
-		wg.Wait()
-		fmt.Println("--------------------------------------------------")
-		allEvents := cache.GetAll()
-		fmt.Printf("Telemetry Sync Completed. Total active events in Cache: %d\n", len(allEvents))
-
-		limit := min(len(allEvents), 5)
-		if limit > 0 {
-			fmt.Println("\nLatest 5 Anomaly Events:")
-			for i := range limit {
-				e := allEvents[i]
-				localTimeStr := e.Timestamp.Format("2006-01-02 15:04:06 (MST)")
-				fmt.Printf("   %d. [%s] Type: %-13s Magnitude: %-5.1f Time: %v | Location: %s\n",
-					i+1, e.ID, e.Type, e.Magnitude, localTimeStr, e.Location)
+			events, err := c.FetchLatest()
+			if err != nil {
+				fmt.Printf("[✗] [%s Engine] failed: %v\n", c.GetName(), err)
+				return
 			}
-		}
-		fmt.Println("==================================================")
+			for _, event := range events {
+				cache.Set(event)
+
+				ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+				err := db.SaveEvent(ctx, event)
+				cancel()
+				if err != nil {
+					fmt.Printf("[✗] [%s Engine] DB Write Error ID: %s, error: %v\n", c.GetName(), event.ID, err)
+				}
+			}
+			fmt.Printf("[✓] [%s Engine] successfully processed %d events\n", c.GetName(), len(events))
+		}()
 	}
 
+	wg.Wait()
+	fmt.Println("--------------------------------------------------")
+	allEvents := cache.GetAll()
+	fmt.Printf("Telemetry Sync Completed. Total active events in Cache: %d\n", len(allEvents))
+
+	limit := min(len(allEvents), 5)
+	if limit > 0 {
+		fmt.Println("\nLatest 5 Anomaly Events:")
+		for i := range limit {
+			e := allEvents[i]
+			localTimeStr := e.Timestamp.Format("2006-01-02 15:04:06 (MST)")
+			fmt.Printf("   %d. [%s] Type: %-13s Magnitude: %-5.1f Time: %v | Location: %s\n",
+				i+1, e.ID, e.Type, e.Magnitude, localTimeStr, e.Location)
+		}
+	}
+	fmt.Println("==================================================")
 }
