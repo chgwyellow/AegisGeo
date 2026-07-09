@@ -17,11 +17,8 @@ import (
 func main() {
 	fmt.Println("AegisGeo is starting...")
 
-	// Load .env
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Fail to load .env: %s", err)
-	}
+	// Load .env (optional, ignore error if file is absent on CI/CD)
+	_ = godotenv.Load()
 
 	// Initialize DB
 	dbURL := os.Getenv("DATABASE_URL")
@@ -41,7 +38,7 @@ func main() {
 	noaaURL := os.Getenv("NOAA_API_URL")
 	nwsURL := os.Getenv("NWS_API_URL")
 	volURL := os.Getenv("VOLCANO_API_URL")
-	email := os.Getenv("Email")
+	email := os.Getenv("EMAIL")
 
 	if cwaURL == "" || cwaToken == "" || usgsURL == "" || jmaURL == "" || noaaURL == "" || cwaRainURL == "" || nwsURL == "" || email == "" || volURL == "" {
 		log.Fatal("Get wrong in environment setting!")
