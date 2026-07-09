@@ -2,8 +2,8 @@ name: AegisGeo Telemetry Ingestion
 
 on:
   schedule:
-    - cron: '*/10 * * * *' # Run every 10 minutes
-  workflow_dispatch:      # Enable manual run from GitHub Web UI
+    - cron: "*/10 * * * *" # Run every 10 minutes
+  workflow_dispatch: # Enable manual run from GitHub Web UI
 
 jobs:
   ingest:
@@ -17,7 +17,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.26.4'
+          go-version: "1.26.4"
           cache: true
 
       - name: Run Telemetry Ingestion
