@@ -110,6 +110,7 @@ AegisGeo/
 │   │   ├── client.go     # IngestionClient interface definition
 │   │   ├── cwa.go        # Central Weather Administration (CWA) Earthquake client
 │   │   ├── cwa_rain.go   # Central Weather Administration (CWA) Rainfall client
+│   │   ├── geodict.go    # Global geographic country dictionary and US states mapping
 │   │   ├── jma.go        # Japan Meteorological Agency (JMA) client
 │   │   ├── noaa_tsunami.go # National Oceanic and Atmospheric Administration (NOAA) Tsunami client
 │   │   ├── nws_severe_weather.go # National Weather Service (NWS) Severe Weather client
