@@ -1,5 +1,7 @@
 DROP TABLE IF EXISTS geo_events;
 
+CREATE EXTENSION IF NOT EXISTS postgis;
+
 CREATE TABLE IF NOT EXISTS geo_events (
 	id varchar(255) NOT NULL,
 	source varchar(10) NOT NULL ,
@@ -41,6 +43,4 @@ CREATE INDEX IF NOT EXISTS idx_event_timestamp ON
 geo_events(event_timestamp DESC);
 
 CREATE INDEX IF NOT EXISTS idx_geo_events_geom ON geo_events USING GIST (geom);
-
-CREATE EXTENSION IF NOT EXISTS postgis;
 
