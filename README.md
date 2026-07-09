@@ -28,6 +28,7 @@ graph TD
         NOAA_API[NOAA Tsunami API]
         CWA_RAIN_API[CWA Rainfall API]
         NWS_API[NWS Severe Weather API]
+        VOLCANO_API[USGS Volcano Alerts API]
     end
 
     %% Ingestion Layer
@@ -38,6 +39,7 @@ graph TD
         G4[Goroutine: TsunamiClient]
         G5[Goroutine: CwaRainClient]
         G6[Goroutine: NwsSevereWeatherClient]
+        G7[Goroutine: VolcanoClient]
     end
 
     %% Connection to Ingestion
@@ -47,6 +49,7 @@ graph TD
     NOAA_API -->|HTTP GET / JSON| G4
     CWA_RAIN_API -->|HTTP GET / Authorization Header| G5
     NWS_API -->|HTTP GET / User-Agent Header / JSON| G6
+    VOLCANO_API -->|HTTP GET / XML| G7
 
     %% Core Process
     subgraph core ["Core Telemetry Engine (Standardization & Verification)"]
@@ -61,6 +64,7 @@ graph TD
     G4 -->|Standardize to Event| Cache
     G5 -->|Standardize to Event| Cache
     G6 -->|Standardize to Event| Cache
+    G7 -->|Standardize to Event| Cache
 
     G1 -->|Write/Verify| DB_Check
     G2 -->|Write/Verify| DB_Check
@@ -68,6 +72,7 @@ graph TD
     G4 -->|Write/Verify| DB_Check
     G5 -->|Write/Verify| DB_Check
     G6 -->|Write/Verify| DB_Check
+    G7 -->|Write/Verify| DB_Check
 
     DB_Check -->|Distance > 50km <br> or Time Diff > 60s| SaveDB
     DB_Check -->|Duplicate USGS Event| Drop[Discard USGS Event]
@@ -87,6 +92,8 @@ graph TD
    - Fetches historical and real-time global tsunami telemetry data.
 5. **NWS (National Weather Service)**:
    - Fetches active severe weather alerts (e.g., Tornado, Severe Thunderstorm watches and warnings) across the US. Identifies requests via a contact email address in the `User-Agent` header, configured via the `Email` environment variable.
+6. **USGS Volcano Hazards Program**:
+   - Fetches real-time CAP (Common Alerting Protocol) volcanic activity alerts (XML format) from the HANS service.
 
 ### Deduplication and Conflict Resolution Logic
 
@@ -114,6 +121,7 @@ AegisGeo/
 │   │   ├── jma.go        # Japan Meteorological Agency (JMA) client
 │   │   ├── noaa_tsunami.go # National Oceanic and Atmospheric Administration (NOAA) Tsunami client
 │   │   ├── nws_severe_weather.go # National Weather Service (NWS) Severe Weather client
+│   │   ├── volcano.go    # USGS Volcano client (XML Parser)
 │   │   └── usgs.go       # United States Geological Survey (USGS) client
 │   ├── models/
 │   │   └── disaster.go   # Unified Event domain model struct definition
@@ -152,6 +160,7 @@ USGS_API_URL=https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.g
 JMA_API_URL=https://api.p2pquake.net/v2/history?codes=551&limit=30
 NOAA_API_URL=https://www.ngdc.noaa.gov/hazel/hazard-service/api/v1/tsunamis/events?minYear=2020
 NWS_API_URL=https://api.weather.gov/alerts/active?event=Tornado%20Watch,Tornado%20Warning,Severe%20Thunderstorm%20Watch,Severe%20Thunderstorm%20Warning
+VOLCANO_API_URL=https://volcanoes.usgs.gov/hans-public/rss/cap/
 Email=your_email@example.com
 ```
 
@@ -167,6 +176,6 @@ The application will:
 
 1. Load variables from `.env`.
 2. Connect and ping the PostgreSQL database.
-3. Spawn isolated Goroutines for `CWA Earthquake`, `CWA Rain`, `USGS`, `JMA`, `NOAA Tsunami`, and `NWS Severe Weather` clients concurrently.
+3. Spawn isolated Goroutines for `CWA Earthquake`, `CWA Rain`, `USGS`, `JMA`, `NOAA Tsunami`, `NWS Severe Weather`, and `USGS Volcano` clients concurrently.
 4. Fetch raw payloads, convert them to standard events, write to the database (performing PostGIS deduplication), and cache them in memory.
 5. Print all processed events cached in memory (ordered by timestamp descending) to the console.
