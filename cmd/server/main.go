@@ -80,7 +80,7 @@ func main() {
 			for _, event := range events {
 				cache.Set(event)
 
-				ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+				ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 				err := db.SaveEvent(ctx, event)
 				cancel()
 				if err != nil {

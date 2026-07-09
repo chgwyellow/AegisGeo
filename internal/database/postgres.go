@@ -16,8 +16,8 @@ type PostgresDB struct {
 
 // Initialize connection pool
 func NewPostgresDB(connStr string) (*PostgresDB, error) {
-	// prevent connection overtime
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		// prevent connection overtime
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	pool, err := pgxpool.New(ctx, connStr)
