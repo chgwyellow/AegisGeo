@@ -1,5 +1,7 @@
 package ingestion
 
+import "strings"
+
 // Geographic keyword dict
 var countryDictionary = map[string]string{
 	// TW
@@ -270,4 +272,57 @@ var usStates = map[string]bool{
 	"NC": true, "ND": true, "OH": true, "OK": true, "OR": true, "PA": true, "RI": true, "SC": true,
 	"SD": true, "TN": true, "TX": true, "UT": true, "VT": true, "VA": true, "WA": true, "WV": true,
 	"WI": true, "WY": true,
+}
+
+// Transfer Country name
+func parseCountryFromPlace(place string) string {
+	if place == "" {
+		return "UNKNOWN"
+	}
+
+	placeUpper := strings.ToUpper(place)
+
+	// USGS places are typically structured as: "[distance] [direction] of [location], [Country or US State]"
+	// If a comma is present, try to match the trimmed last part exactly first.
+	if idx := strings.LastIndex(placeUpper, ","); idx != -1 {
+		lastPart := strings.TrimSpace(placeUpper[idx+1:])
+
+		// 1. Direct exact match in our dictionary (e.g. "CANADA" -> "CA", "PR" -> "PR")
+		if isoCode, exists := countryDictionary[lastPart]; exists {
+			return isoCode
+		}
+
+		// 2. Check if it's a 2-letter US State postal abbreviation (e.g. "CA", "AK", "NV")
+		if usStates[lastPart] {
+			return "US"
+		}
+
+		// 3. Direct exact match for USA indicator
+		if lastPart == "USA" || lastPart == "UNITED STATES" {
+			return "US"
+		}
+	}
+
+	// Fallback to substring matching if exact match of the last part is not found
+	for keyword, isoCode := range countryDictionary {
+		if strings.Contains(placeUpper, keyword) {
+			return isoCode
+		}
+	}
+
+	// Suffix/Indicator checks
+	if strings.Contains(placeUpper, "USA") || strings.Contains(placeUpper, "UNITED STATES") {
+		return "US"
+	}
+
+	// Ocean indicators (e.g., Ridge, Trench, Basin, Ocean, Rise)
+	if strings.Contains(placeUpper, "RIDGE") ||
+		strings.Contains(placeUpper, "TRENCH") ||
+		strings.Contains(placeUpper, "BASIN") ||
+		strings.Contains(placeUpper, "OCEAN") ||
+		strings.Contains(placeUpper, "RISE") {
+		return "OCEAN"
+	}
+
+	return "OCEAN"
 }

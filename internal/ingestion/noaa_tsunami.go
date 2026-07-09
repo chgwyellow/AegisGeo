@@ -25,18 +25,25 @@ func (t *TsunamiClient) GetName() string {
 
 type noaaTsunamiResponse struct {
 	Items []struct {
-		ID               int     `json:"id"`
-		Year             int     `json:"year"`
-		Month            int     `json:"month"`
-		Day              int     `json:"day"`
-		Hour             int     `json:"hour"`
-		Minute           int     `json:"minute"`
-		MaxWaterHeight   float64 `json:"maxWaterHeight"`
-		TsunamiIntensity float64 `json:"tsunamiIntensity"`
-		Country          string  `json:"country"`
-		LocationName     string  `json:"locationName"`
-		Latitude         float64 `json:"latitude"`
-		Longitude        float64 `json:"longitude"`
+		ID                         int     `json:"id"`
+		Year                       int     `json:"year"`
+		Month                      int     `json:"month"`
+		Day                        int     `json:"day"`
+		Hour                       int     `json:"hour"`
+		Minute                     int     `json:"minute"`
+		Second                     float64 `json:"second"`
+		MaxWaterHeight             float64 `json:"maxWaterHeight"`
+		TsunamiIntensity           float64 `json:"tsunamiIntensity"`
+		Country                    string  `json:"country"`
+		LocationName               string  `json:"locationName"`
+		Latitude                   float64 `json:"latitude"`
+		Longitude                  float64 `json:"longitude"`
+		Depth                      float64 `json:"eqDepth"`
+		EqMagnitude                float64 `json:"eqMagnitude"`
+		EarthquakeEventId          int     `json:"earthquakeEventId"`
+		CauseCode                  int     `json:"causeCode"`
+		DeathsTotal                int     `json:"deathsTotal"`
+		DamageMillionsDollarsTotal float64 `json:"damageMillionsDollarsTotal"`
 	} `json:"items"`
 }
 
@@ -64,7 +71,16 @@ func (t *TsunamiClient) FetchLatest() ([]models.Event, error) {
 
 	events := make([]models.Event, 0, len(raw.Items))
 	for _, item := range raw.Items {
-		eventTime := time.Date(item.Year, time.Month(item.Month), item.Day, item.Hour, item.Minute, 0, 0, time.UTC)
+		eventTime := time.Date(item.Year, time.Month(item.Month), item.Day, item.Hour, item.Minute, int(item.Second), 0, time.UTC)
+
+		// Parse country from location name or country string to fit database varchar(10) constraint
+		detectedCountry := parseCountryFromPlace(item.Country)
+		if detectedCountry == "OCEAN" || detectedCountry == "UNKNOWN" {
+			detectedCountry = parseCountryFromPlace(item.LocationName)
+		}
+		if len(detectedCountry) > 10 {
+			detectedCountry = detectedCountry[:10]
+		}
 
 		standardEvent := models.Event{
 			ID:        fmt.Sprintf("NOAA-TSU-%d", item.ID),
@@ -72,14 +88,19 @@ func (t *TsunamiClient) FetchLatest() ([]models.Event, error) {
 			Type:      "Tsunami",
 			Title:     fmt.Sprintf("Tsunami Monitor, Max Water Height %.2fm", item.MaxWaterHeight),
 			Magnitude: item.MaxWaterHeight,
-			Depth:     0.0,
+			Depth:     item.Depth,
 			Timestamp: eventTime,
-			Country:   item.Country,
+			Country:   detectedCountry,
 			Location:  item.LocationName,
 			Latitude:  item.Latitude,
 			Longitude: item.Longitude,
 			Details: map[string]any{
-				"tsunami_intensity": item.TsunamiIntensity,
+				"tsunami_intensity":             item.TsunamiIntensity,
+				"eq_magnitude":                  item.EqMagnitude,
+				"earthquake_event_id":           item.EarthquakeEventId,
+				"cause_code":                    item.CauseCode,
+				"deaths_total":                  item.DeathsTotal,
+				"damage_millions_dollars_total": item.DamageMillionsDollarsTotal,
 			},
 		}
 
