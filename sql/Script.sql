@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS geo_events (
 	source varchar(10) NOT NULL ,
 	event_type varchar(50) NOT NULL,
 	title text NOT NULL,
-	magnitude NUMERIC(3, 1) NOT NULL,
+	magnitude NUMERIC(6, 2) NOT NULL,
 	depth NUMERIC(6, 2) NOT NULL,
 	event_timestamp timestamptz NOT NULL,
 	country varchar(10) NOT NULL,
