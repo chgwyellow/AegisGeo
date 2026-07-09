@@ -46,8 +46,12 @@ func (n *NwsSevereWeatherClient) FetchLatest() ([]models.Event, error) {
 
 	startTimeStr := todayMidnight.Format("2006-01-02T15:04:05Z")
 
-	dynamicURL := fmt.Sprintf("https://api.weather.gov/alerts?start=%s&event=Tornado%%20Watch,Tornado%%20Warning,Severe%%20Thunderstorm%%20Watch,Severe%%20Thunderstorm%%20Warning",
-		startTimeStr)
+	baseURL := n.apiURL
+	if idx := strings.Index(baseURL, "/alerts"); idx != -1 {
+		baseURL = baseURL[:idx]
+	}
+	dynamicURL := fmt.Sprintf("%s/alerts?start=%s&event=Tornado%%20Watch,Tornado%%20Warning,Severe%%20Thunderstorm%%20Watch,Severe%%20Thunderstorm%%20Warning",
+		baseURL, startTimeStr)
 
 	req, err := http.NewRequest("GET", dynamicURL, nil)
 	if err != nil {
@@ -101,7 +105,7 @@ func (n *NwsSevereWeatherClient) FetchLatest() ([]models.Event, error) {
 			Longitude: 0.0,
 			Details: map[string]any{
 				"event_type":        p.Event,
-				"storm_description": p.Description,
+				"storm_description": strings.Join(strings.Fields(p.Description), " "),
 				"original_urn":      p.ID,
 			},
 		}
