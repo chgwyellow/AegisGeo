@@ -79,13 +79,13 @@ func main() {
 			}
 			for _, event := range events {
 				cache.Set(event)
+			}
 
-				ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-				err := db.SaveEvent(ctx, event)
-				cancel()
-				if err != nil {
-					fmt.Printf("[✗] [%s Engine] DB Write Error ID: %s, error: %v\n", c.GetName(), event.ID, err)
-				}
+			ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+			err = db.SaveEvents(ctx, events)
+			cancel()
+			if err != nil {
+				fmt.Printf("[✗] [%s Engine] DB Batch Write Error: %v\n", c.GetName(), err)
 			}
 			fmt.Printf("[✓] [%s Engine] successfully processed %d events\n", c.GetName(), len(events))
 		}()
