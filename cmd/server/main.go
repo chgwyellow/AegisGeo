@@ -67,50 +67,54 @@ func main() {
 	fmt.Println("Start Daemon, 24/7 365 Monitoring...")
 
 	for range ticker.C {
-		fmt.Printf("Current time: %v\n", time.Now().Format("2006-01-02 15:04:06"))
+		fmt.Println("==================================================")
+		fmt.Printf("AegisGeo Telemetry Cycle Started at %v\n", time.Now().Format("2006-01-02 15:04:06"))
+		fmt.Println("==================================================")
 
-		// Prepare Wait Group
 		var wg sync.WaitGroup
-		wg.Add(len(clients)) // Based on source amount
+		wg.Add(len(clients))
 
 		for _, client := range clients {
 			c := client
 
 			go func() {
 				defer wg.Done()
-				fmt.Printf("Start [%s Engine]...\n", c.GetName())
 
 				events, err := c.FetchLatest()
 				if err != nil {
-					fmt.Printf("[%s Engine] failed: %v\n", c.GetName(), err)
+					fmt.Printf("[✗] [%s Engine] failed: %v\n", c.GetName(), err)
 					return
 				}
 				for _, event := range events {
-					cache.Set(event) // To memory
-					fmt.Printf("[%s Engine] Added: %v\n", c.GetName(), event.ID)
+					cache.Set(event)
 
-					// To PostgresSQL
 					ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 					err := db.SaveEvent(ctx, event)
 					cancel()
 					if err != nil {
-						fmt.Printf("[Fail to write to DB] ID: %s, error: %v\n", event.ID, err)
+						fmt.Printf("[✗] [%s Engine] DB Write Error ID: %s, error: %v\n", c.GetName(), event.ID, err)
 					}
 				}
+				fmt.Printf("[✓] [%s Engine] successfully processed %d events\n", c.GetName(), len(events))
 			}()
 		}
 
-		// Wait for goroutines finish their work
 		wg.Wait()
-		fmt.Println("\nAll data has been recorded")
+		fmt.Println("--------------------------------------------------")
+		allEvents := cache.GetAll()
+		fmt.Printf("Telemetry Sync Completed. Total active events in Cache: %d\n", len(allEvents))
 
-		// Get all data
-		fmt.Printf("There are %d event(s) in the memory!\n", len(cache.GetAll()))
-
-		for _, e := range cache.GetAll() {
-			localTimeStr := e.Timestamp.Format("2006-01-02 15:04:06 (MST)")
-			fmt.Printf("   - [%s] Type: %s, Magnitude: %.1f, Time: %v, Location: %s\n", e.ID, e.Type, e.Magnitude, localTimeStr, e.Location)
+		limit := min(len(allEvents), 5)
+		if limit > 0 {
+			fmt.Println("\nLatest 5 Anomaly Events:")
+			for i := range limit {
+				e := allEvents[i]
+				localTimeStr := e.Timestamp.Format("2006-01-02 15:04:06 (MST)")
+				fmt.Printf("   %d. [%s] Type: %-13s Magnitude: %-5.1f Time: %v | Location: %s\n",
+					i+1, e.ID, e.Type, e.Magnitude, localTimeStr, e.Location)
+			}
 		}
+		fmt.Println("==================================================")
 	}
 
 }
