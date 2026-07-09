@@ -61,7 +61,7 @@ func main() {
 		ingestion.NewVolcanoClient(volURL),
 	}
 
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
 
 	fmt.Println("Start Daemon, 24/7 365 Monitoring...")
