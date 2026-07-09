@@ -1,0 +1,38 @@
+name: AegisGeo Telemetry Ingestion
+
+on:
+  schedule:
+    - cron: '*/10 * * * *' # Run every 10 minutes
+  workflow_dispatch:      # Enable manual run from GitHub Web UI
+
+jobs:
+  ingest:
+    name: Run Ingestion
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.4'
+          cache: true
+
+      - name: Run Telemetry Ingestion
+        env:
+          # Database Connection & Auth (Read from GitHub Repository Secrets)
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CWA_TOKEN: ${{ secrets.CWA_TOKEN }}
+          EMAIL: ${{ secrets.EMAIL }}
+
+          # API Endpoint Configurations
+          CWA_EQK_URL: https://opendata.cwa.gov.tw/api/v1/rest/datastore/E-A0015-001
+          CWA_RAIN_URL: https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0002-001
+          USGS_API_URL: https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson
+          JMA_API_URL: https://api.p2pquake.net/v2/history?codes=551&limit=30
+          NOAA_API_URL: https://www.ngdc.noaa.gov/hazel/hazard-service/api/v1/tsunamis/events?minYear=2020
+          NWS_API_URL: https://api.weather.gov/alerts
+          VOLCANO_API_URL: https://volcanoes.usgs.gov/hans-public/rss/cap/
+        run: go run cmd/server/main.go

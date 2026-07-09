@@ -172,3 +172,22 @@ The application will:
 - **Database Driver**: `github.com/jackc/pgx/v5` (`pgxpool` connection pool)
 - **Environment Variables**: `github.com/joho/godotenv`
 - **Concurrency Control**: Native `sync.WaitGroup` and `sync.RWMutex` (for thread-safe memory cache operations)
+
+---
+
+## Deploying to GitHub Actions
+
+The project includes a pre-configured GitHub Actions workflow located in `.github/workflows/ingest.yml` that runs the ingestion cycle automatically every 10 minutes.
+
+### Setup Instructions
+
+1. **Create a GitHub Repository**: Push your project to GitHub.
+2. **Configure Secrets**:
+   Go to your repository settings: **Settings ➡️ Secrets and variables ➡️ Actions** and add the following **Repository Secrets**:
+   - `DATABASE_URL`: Your Neon connection string (e.g., `postgres://neondb_owner:password@host/neondb?sslmode=require`).
+   - `CWA_TOKEN`: Your Central Weather Administration API token.
+   - `EMAIL`: Your contact email (used in the User-Agent header for NWS requests).
+3. **Verify Execution**:
+   - Go to the **Actions** tab in your repository.
+   - Select **AegisGeo Telemetry Ingestion**.
+   - You can wait for the 10-minute schedule or click **Run workflow** to trigger it manually to test the setup.
