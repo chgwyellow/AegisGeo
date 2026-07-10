@@ -1,9 +1,7 @@
 name: AegisGeo Telemetry Ingestion
 
 on:
-  schedule:
-    - cron: "*/10 * * * *" # Run every 10 minutes
-  workflow_dispatch: # Enable manual run from GitHub Web UI
+  workflow_dispatch: # Enable manual run and API triggers (like Cron-Job.org)
 
 jobs:
   ingest:

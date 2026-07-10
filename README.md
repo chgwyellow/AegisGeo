@@ -175,19 +175,39 @@ The application will:
 
 ---
 
-## Deploying to GitHub Actions
+## Deploying to GitHub Actions with Cron-Job.org
 
-The project includes a pre-configured GitHub Actions workflow located in `.github/workflows/ingest.yml` that runs the ingestion cycle automatically every 10 minutes.
+The project includes a pre-configured GitHub Actions workflow located in `.github/workflows/ingest.yml` to run the ingestion cycle. Because GitHub Actions' native scheduler can be delayed during high-traffic periods, we trigger it precisely using [Cron-Job.org](https://cron-job.org/).
 
 ### Setup Instructions
 
 1. **Create a GitHub Repository**: Push your project to GitHub.
-2. **Configure Secrets**:
+2. **Configure Repository Secrets**:
    Go to your repository settings: **Settings ➡️ Secrets and variables ➡️ Actions** and add the following **Repository Secrets**:
    - `DATABASE_URL`: Your Neon connection string (e.g., `postgres://neondb_owner:password@host/neondb?sslmode=require`).
    - `CWA_TOKEN`: Your Central Weather Administration API token.
    - `EMAIL`: Your contact email (used in the User-Agent header for NWS requests).
-3. **Verify Execution**:
-   - Go to the **Actions** tab in your repository.
-   - Select **AegisGeo Telemetry Ingestion**.
-   - You can wait for the 10-minute schedule or click **Run workflow** to trigger it manually to test the setup.
+3. **Generate a GitHub Personal Access Token (PAT)**:
+   - Go to your GitHub **Settings ➡️ Developer Settings ➡️ Personal Access Tokens ➡️ Tokens (classic)**.
+   - Generate a new classic token, selecting the `workflow` scope. Copy the generated token (`ghp_...`).
+4. **Configure [Cron-Job.org](https://cron-job.org/)**:
+   - Create a free account on [Cron-Job.org](https://cron-job.org/).
+   - Click **Create Cron Job**:
+     - **Title**: `AegisGeo Ingestion`
+     - **URL**: `https://api.github.com/repos/{owner}/{repo}/actions/workflows/ingest.yml/dispatches` (Replace `{owner}` and `{repo}` with your GitHub username and repository name).
+     - **Request Method**: `POST`
+     - **Headers**:
+       - `Authorization`: `Bearer <your_copied_ghp_token>` (Make sure there is a space after `Bearer`).
+       - `Accept`: `application/vnd.github+json`
+       - `X-GitHub-Api-Version`: `2022-11-28`
+       - `User-Agent`: `Cron-Job.org`
+       - `Content-Type`: `application/json`
+     - **Body** (raw/JSON):
+
+       ```json
+       {
+         "ref": "main"
+       }
+       ```
+
+     - **Schedule**: Set to execute every 10 minutes.
