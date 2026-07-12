@@ -1,6 +1,8 @@
-DROP TABLE IF EXISTS geo_events;
+DROP VIEW IF EXISTS v_earthquakes, v_rainfalls, v_geo_events CASCADE;
+DROP TABLE IF EXISTS geo_events CASCADE;
 
 CREATE EXTENSION IF NOT EXISTS postgis;
+
 
 CREATE TABLE IF NOT EXISTS geo_events (
 	id varchar(255) NOT NULL,

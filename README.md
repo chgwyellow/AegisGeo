@@ -127,11 +127,11 @@ AegisGeo/
 
 ### 1. Database Setup
 
-Make sure you have PostgreSQL installed with the `postgis` extension enabled. Use `sql/Script.sql` to initialize tables and indices:
+Make sure you have PostgreSQL installed with the `postgis` extension enabled. Use `sql/Script.sql` to initialize tables, partitions, indices, and mapping views:
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS postgis;
--- Run Script.sql to create the geo_events table and spatial indexes
+-- Run Script.sql to create the geo_events tables, partitions, and GIS views
 ```
 
 ### 2. Configure Environment Variables
@@ -166,6 +166,22 @@ The application will:
 3. Spawn isolated Goroutines for `CWA Earthquake`, `CWA Rain`, `USGS`, `JMA`, `NOAA Tsunami`, `NWS Severe Weather`, and `USGS Volcano` clients concurrently.
 4. Fetch raw payloads, convert them to standard events, write to the database (performing PostGIS deduplication), and cache them in memory.
 5. Print the latest 5 anomaly events cached in memory (ordered by timestamp descending) to the console and exit. This single-cycle design is optimized for cron schedulers, serverless functions (e.g. AWS Lambda, Google Cloud Functions), or CI/CD pipelines (e.g. GitHub Actions).
+
+### 4. Viewing Spatial Data in DBeaver
+
+The database setup automatically creates three pre-configured database views for GIS visualization:
+
+- `v_geo_events`: All events with dynamic color-coding and tooltips.
+- `v_earthquakes`: Earthquake-only events categorized by magnitude.
+- `v_rainfalls`: Rainfall-only events categorized by precipitation.
+
+To view these on a map in DBeaver:
+
+1. In the database navigator, expand your connection ➡️ **Views**.
+2. Double-click any view (e.g., `v_geo_events`).
+3. Switch to the **Data** tab in the main editor.
+4. On the right-side vertical toolbar of the data grid, select the **Spatial** panel.
+5. The map will render with **dynamic color-coding** (e.g., Red/Orange/Yellow for earthquakes by magnitude, Dark/Light Blue for rain by precipitation level) and custom labels on hover.
 
 ## Tech Stack
 
