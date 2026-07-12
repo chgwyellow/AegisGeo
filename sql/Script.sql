@@ -44,3 +44,28 @@ geo_events(event_timestamp DESC);
 
 CREATE INDEX IF NOT EXISTS idx_geo_events_geom ON geo_events USING GIST (geom);
 
+CREATE OR REPLACE VIEW v_geo_events AS
+SELECT 
+    *,
+    CASE 
+        WHEN event_type = 'Earthquake' AND magnitude >= 6.0 THEN '#E74C3C'
+        WHEN event_type = 'Earthquake' AND magnitude >= 4.0 THEN '#E67E22'
+        WHEN event_type = 'Earthquake' THEN '#F1C40F'
+        WHEN event_type = 'Rain' AND magnitude >= 100.0 THEN '#AF56D6'
+        WHEN event_type = 'Rain' AND magnitude >= 40.0 THEN '#1B4F72'
+        WHEN event_type = 'Rain' THEN '#3498DB'
+        WHEN event_type = 'Volcano' THEN '#D35400'
+        ELSE '#95A5A6'
+    END AS color,
+    CONCAT(event_type, ' (', magnitude, '): ', location) AS label
+FROM geo_events;
+
+-- Earthquake
+CREATE OR REPLACE VIEW v_earthquakes AS
+SELECT * FROM v_geo_events 
+WHERE event_type = 'Earthquake';
+
+-- Rain
+CREATE OR REPLACE VIEW v_rainfalls AS
+SELECT * FROM v_geo_events 
+WHERE event_type = 'Rain';
