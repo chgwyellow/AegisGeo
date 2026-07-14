@@ -2,6 +2,7 @@ package api
 
 import (
 	"AegisGeo/internal/database"
+	"AegisGeo/internal/models"
 	"encoding/json"
 	"net/http"
 )
@@ -17,11 +18,23 @@ func EventsHandler(db *database.PostgresDB, key string) http.HandlerFunc {
 			return
 		}
 
-		// Fetch summaries from the database with a limit of 20
-		events, err := db.GetEventSummaries(r.Context(), 20)
-		if err != nil {
-			http.Error(w, "Failed to fetch data from database", http.StatusInternalServerError)
-			return
+		eventType := r.URL.Query().Get("type")
+		var events []models.EventSummary
+		var err error
+
+		if eventType != "" {
+			events, err = db.GetEventsByType(r.Context(), eventType, 20)
+			if err != nil {
+				http.Error(w, "Failed to fetch data from database", http.StatusInternalServerError)
+				return
+			}
+		} else {
+			// Fetch summaries from the database with a limit of 20
+			events, err = db.GetEventSummaries(r.Context(), 20)
+			if err != nil {
+				http.Error(w, "Failed to fetch data from database", http.StatusInternalServerError)
+				return
+			}
 		}
 
 		// Set response header to JSON

@@ -215,7 +215,7 @@ func (db *PostgresDB) SaveEvents(ctx context.Context, events []models.Event) err
 	return tx.Commit(ctx)
 }
 
-// Get App data structure
+// Get all type data
 func (db *PostgresDB) GetEventSummaries(ctx context.Context, limit int) ([]models.EventSummary, error) {
 	query := `
 		SELECT id, title, source, event_type, magnitude, depth, event_timestamp, country, location
@@ -225,6 +225,36 @@ func (db *PostgresDB) GetEventSummaries(ctx context.Context, limit int) ([]model
 	`
 
 	rows, err := db.Pool.Query(ctx, query, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var summaries []models.EventSummary
+	for rows.Next() {
+		var s models.EventSummary
+		err := rows.Scan(
+			&s.ID, &s.Title, &s.Source, &s.Type, &s.Magnitude, &s.Depth, &s.Timestamp, &s.Country, &s.Location,
+		)
+		if err != nil {
+			return nil, err
+		}
+		summaries = append(summaries, s)
+	}
+	return summaries, nil
+}
+
+// Get single type data
+func (db *PostgresDB) GetEventsByType(ctx context.Context, eventType string, limit int) ([]models.EventSummary, error) {
+	query := `
+		SELECT id, title, source, event_type, magnitude, depth, event_timestamp, country, location
+		FROM geo_events
+		WHERE event_type = $1
+		ORDER BY event_timestamp DESC, magnitude DESC
+		LIMIT $2
+	`
+
+	rows, err := db.Pool.Query(ctx, query, eventType, limit)
 	if err != nil {
 		return nil, err
 	}
