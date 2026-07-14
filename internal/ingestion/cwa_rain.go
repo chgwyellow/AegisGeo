@@ -96,7 +96,7 @@ func (c *CwaRainClient) FetchLatest() ([]models.Event, error) {
 			ID:        fmt.Sprintf("CWA-RAIN-%s", s.StationId),
 			Source:    "CWA",
 			Type:      "Rain",
-			Title:     fmt.Sprintf("%s: Precipitation %.1f mm", s.StationName, currentRain),
+			Title:     s.StationName,
 			Magnitude: currentRain,
 			Depth:     0.0,
 			Timestamp: t,
