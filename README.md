@@ -151,6 +151,7 @@ NOAA_API_URL=https://www.ngdc.noaa.gov/hazel/hazard-service/api/v1/tsunamis/even
 NWS_API_URL=https://api.weather.gov/alerts/active?event=Tornado%20Watch,Tornado%20Warning,Severe%20Thunderstorm%20Watch,Severe%20Thunderstorm%20Warning
 VOLCANO_API_URL=https://volcanoes.usgs.gov/hans-public/rss/cap/
 Email=your_email@example.com
+SECRET_KEY=your_secret_api_key
 ```
 
 ### 3. Run the Applications
@@ -184,7 +185,13 @@ The server will:
 1. Load variables from `.env` and connect to the PostgreSQL database.
 2. Register the following endpoints:
    - `GET /api/status`: Returns `OK` if the database connection is alive.
-   - `GET /api/events`: Returns the latest 20 disaster events.
+   - `GET /api/events`: Returns the latest 20 disaster events. **Requires the request header `X-API-KEY` matching the `SECRET_KEY` configured in `.env`.**
+     - Example request:
+
+       ```bash
+       curl -H "X-API-KEY: your_secret_api_key" http://localhost:8080/api/events
+       ```
+
 3. Listen and serve requests on port `8080` (blocks until terminated).
 
 ### 4. Viewing Spatial Data in DBeaver
