@@ -26,3 +26,17 @@ func EventsHandler(db *database.PostgresDB) http.HandlerFunc {
 		}
 	}
 }
+
+// StatusHandler checks if the database connection is alive.
+func StatusHandler(db *database.PostgresDB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := db.Pool.Ping(r.Context())
+		if err != nil {
+			http.Error(w, "Database is down", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	}
+}

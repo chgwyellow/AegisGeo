@@ -28,15 +28,17 @@ func main() {
 	if err != nil {
 		log.Fatalf("Database built failed: %v", err)
 	}
+	defer db.Close()
+	fmt.Println("PostgreSQL connection is online.")
 
 	// Route definition
 	http.HandleFunc("/api/events", api.EventsHandler(db))
+	http.HandleFunc("/api/status", api.StatusHandler(db))
 
-	log.Println("Server starting on :8080...")
-	log.Fatal(http.ListenAndServe(":8080", nil))
-
-	defer db.Close()
-	fmt.Println("PostgreSQL connection is online.")
+	log.Println("AegisGeo server is running on :8080...")
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal("Server failed:", err)
+	}
 
 	// Read env variables
 	cwaURL := os.Getenv("CWA_EQK_URL")
