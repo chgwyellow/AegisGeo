@@ -17,7 +17,7 @@ type PostgresDB struct {
 
 // Initialize connection pool
 func NewPostgresDB(connStr string) (*PostgresDB, error) {
-		// prevent connection overtime
+	// prevent connection overtime
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
@@ -215,3 +215,31 @@ func (db *PostgresDB) SaveEvents(ctx context.Context, events []models.Event) err
 	return tx.Commit(ctx)
 }
 
+// Get App data structure
+func (db *PostgresDB) GetEventSummaries(ctx context.Context, limit int) ([]models.EventSummary, error) {
+	query := `
+		SELECT id, title, source, event_type, magnitude, depth, event_timestamp, country, location
+		FROM geo_events
+		ORDER BY event_timestamp DESC
+		LIMIT $1
+	`
+
+	rows, err := db.Pool.Query(ctx, query, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var summaries []models.EventSummary
+	for rows.Next() {
+		var s models.EventSummary
+		err := rows.Scan(
+			&s.ID, &s.Title, &s.Source, &s.Type, &s.Magnitude, &s.Depth, &s.Timestamp, &s.Country, &s.Location,
+		)
+		if err != nil {
+			return nil, err
+		}
+		summaries = append(summaries, s)
+	}
+	return summaries, nil
+}

@@ -18,3 +18,16 @@ type Event struct {
 	Longitude float64        `json:"longitude"`
 	Details   map[string]any `json:"details"` // Dynamic, JSONB
 }
+
+// App
+type EventSummary struct {
+	ID        string    `json:"id"`
+	Title     string    `json:"title"`
+	Source    string    `json:"source"`
+	Type      string    `json:"event_type"`
+	Magnitude float64   `json:"magnitude"`
+	Depth     float64   `json:"depth"`
+	Timestamp time.Time `json:"event_timestamp"`
+	Country   string    `json:"country"`
+	Location  string    `json:"location"`
+}
