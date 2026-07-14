@@ -17,6 +17,8 @@ func main() {
 	// Load .env (optional)
 	_ = godotenv.Load()
 
+	secretKey := os.Getenv("SECRET_KEY")
+
 	// Initialize DB
 	dbURL := os.Getenv("DATABASE_URL")
 	db, err := database.NewPostgresDB(dbURL)
@@ -27,7 +29,7 @@ func main() {
 	fmt.Println("PostgreSQL connection is online.")
 
 	// Route definition
-	http.HandleFunc("/api/events", api.EventsHandler(db))
+	http.HandleFunc("/api/events", api.EventsHandler(db, secretKey))
 	http.HandleFunc("/api/status", api.StatusHandler(db))
 
 	log.Println("AegisGeo server is running on :8080...")

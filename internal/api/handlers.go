@@ -7,8 +7,16 @@ import (
 )
 
 // EventsHandler handles the request to fetch recent disaster events.
-func EventsHandler(db *database.PostgresDB) http.HandlerFunc {
+func EventsHandler(db *database.PostgresDB, key string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Catch "X-API-KEY" from request
+		providedKey := r.Header.Get("X-API-KEY")
+
+		if providedKey != key {
+			http.Error(w, "Unauthorized: Access Denied", http.StatusUnauthorized)
+			return
+		}
+
 		// Fetch summaries from the database with a limit of 20
 		events, err := db.GetEventSummaries(r.Context(), 20)
 		if err != nil {
