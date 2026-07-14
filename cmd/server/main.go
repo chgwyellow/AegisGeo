@@ -1,12 +1,14 @@
 package main
 
 import (
+	"AegisGeo/internal/api"
 	"AegisGeo/internal/database"
 	"AegisGeo/internal/ingestion"
 	"AegisGeo/internal/store"
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"sync"
 	"time"
@@ -26,6 +28,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("Database built failed: %v", err)
 	}
+
+	// Route definition
+	http.HandleFunc("/api/events", api.EventsHandler(db))
+
+	log.Println("Server starting on :8080...")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+
 	defer db.Close()
 	fmt.Println("PostgreSQL connection is online.")
 
