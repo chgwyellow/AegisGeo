@@ -95,8 +95,10 @@ graph TD
 ```text
 AegisGeo/
 ├── cmd/
-│   └── server/
-│       └── main.go       # Application entry point (Loads env, initializes pgxpool, spawns ingestion, and outputs cache summary)
+│   ├── server/
+│   │   └── main.go       # API server entry point (Sets up REST endpoints, connects to DB, and starts HTTP server)
+│   └── ingest/
+│       └── main.go       # Telemetry ingestion job entry point (Single-cycle client fetches, PostGIS deduplication, DB save)
 ├── internal/
 │   ├── database/
 │   │   └── postgres.go   # PostgreSQL client using pgxpool for queries, spatial collision deduplication, and Upsert operations
@@ -151,21 +153,39 @@ VOLCANO_API_URL=https://volcanoes.usgs.gov/hans-public/rss/cap/
 Email=your_email@example.com
 ```
 
-### 3. Run the Ingestion
+### 3. Run the Applications
 
-Execute the following command in the root directory:
+#### Run the Telemetry Ingestion Job
+
+To execute a single telemetry data ingestion cycle (optimized for cron schedulers, serverless functions like AWS Lambda, or CI/CD pipelines like GitHub Actions):
 
 ```bash
-go run cmd/server/main.go
+go run cmd/ingest/main.go
 ```
 
-The application will:
+The ingestion job will:
 
 1. Load variables from `.env`.
 2. Connect and ping the PostgreSQL database.
 3. Spawn isolated Goroutines for `CWA Earthquake`, `CWA Rain`, `USGS`, `JMA`, `NOAA Tsunami`, `NWS Severe Weather`, and `USGS Volcano` clients concurrently.
 4. Fetch raw payloads, convert them to standard events, write to the database (performing PostGIS deduplication), and cache them in memory.
-5. Print the latest 5 anomaly events cached in memory (ordered by timestamp descending) to the console and exit. This single-cycle design is optimized for cron schedulers, serverless functions (e.g. AWS Lambda, Google Cloud Functions), or CI/CD pipelines (e.g. GitHub Actions).
+5. Print the latest 5 anomaly events cached in memory (ordered by timestamp descending) to the console and exit.
+
+#### Run the API Server
+
+To start the REST API server to serve event data:
+
+```bash
+go run cmd/server/main.go
+```
+
+The server will:
+
+1. Load variables from `.env` and connect to the PostgreSQL database.
+2. Register the following endpoints:
+   - `GET /api/status`: Returns `OK` if the database connection is alive.
+   - `GET /api/events`: Returns the latest 20 disaster events.
+3. Listen and serve requests on port `8080` (blocks until terminated).
 
 ### 4. Viewing Spatial Data in DBeaver
 

@@ -33,4 +33,4 @@ jobs:
           NOAA_API_URL: https://www.ngdc.noaa.gov/hazel/hazard-service/api/v1/tsunamis/events?minYear=2020
           NWS_API_URL: https://api.weather.gov/alerts
           VOLCANO_API_URL: https://volcanoes.usgs.gov/hans-public/rss/cap/
-        run: go run cmd/server/main.go
+        run: go run cmd/ingest/main.go
