@@ -15,7 +15,7 @@ type PostgresDB struct {
 	Pool *pgxpool.Pool
 }
 
-// Initialize connection pool
+// * Initialize connection pool
 func NewPostgresDB(connStr string) (*PostgresDB, error) {
 	// prevent connection overtime
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -35,14 +35,14 @@ func NewPostgresDB(connStr string) (*PostgresDB, error) {
 	return &PostgresDB{Pool: pool}, nil
 }
 
-// Close pool
+// * Close pool
 func (db *PostgresDB) Close() {
 	if db.Pool != nil {
 		db.Pool.Close()
 	}
 }
 
-// Save event via SQL Upsert
+// * Save event via SQL Upsert
 func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 
 	// Check if there is any data whose time is less then 60 seconds
@@ -113,7 +113,7 @@ func (db *PostgresDB) SaveEvent(ctx context.Context, e models.Event) error {
 	return err
 }
 
-// SaveEvents saves a slice of events using database transactions and batching for high performance
+// * SaveEvents saves a slice of events using database transactions and batching for high performance
 func (db *PostgresDB) SaveEvents(ctx context.Context, events []models.Event) error {
 	if len(events) == 0 {
 		return nil
@@ -215,7 +215,7 @@ func (db *PostgresDB) SaveEvents(ctx context.Context, events []models.Event) err
 	return tx.Commit(ctx)
 }
 
-// Get all type data
+// * Get all type data
 func (db *PostgresDB) GetEventSummaries(ctx context.Context, limit int) ([]models.EventSummary, error) {
 	query := `
 		SELECT id, title, source, event_type, magnitude, depth, event_timestamp, country, location
@@ -244,7 +244,7 @@ func (db *PostgresDB) GetEventSummaries(ctx context.Context, limit int) ([]model
 	return summaries, nil
 }
 
-// Get single type data
+// * Get single type data
 func (db *PostgresDB) GetEventsByType(ctx context.Context, eventType string, limit int) ([]models.EventSummary, error) {
 	query := `
 		SELECT id, title, source, event_type, magnitude, depth, event_timestamp, country, location
