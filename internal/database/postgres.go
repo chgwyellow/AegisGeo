@@ -245,16 +245,18 @@ func (db *PostgresDB) GetEventSummaries(ctx context.Context, limit int) ([]model
 }
 
 // * Get single type data
-func (db *PostgresDB) GetEventsByType(ctx context.Context, eventType string, limit int) ([]models.EventSummary, error) {
+func (db *PostgresDB) GetEventsByType(ctx context.Context, eventType string, start, end time.Time, limit int) ([]models.EventSummary, error) {
 	query := `
 		SELECT id, title, source, event_type, magnitude, depth, event_timestamp, country, location
 		FROM geo_events
 		WHERE event_type = $1
+			AND event_timestamp >= $2
+			AND event_timestamp <= $3
 		ORDER BY event_timestamp DESC, magnitude DESC
-		LIMIT $2
+		LIMIT $4
 	`
 
-	rows, err := db.Pool.Query(ctx, query, eventType, limit)
+	rows, err := db.Pool.Query(ctx, query, eventType, start, end, limit)
 	if err != nil {
 		return nil, err
 	}
