@@ -1,6 +1,8 @@
 package api
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 )
@@ -25,5 +27,17 @@ func TestDateParsing(t *testing.T) {
 		if (err != nil) != tt.wantErr {
 			t.Errorf("For %q, expected error is %v, but the result is %v", tt.input, tt.wantErr, err)
 		}
+	}
+}
+
+func TestEventsHandlerReturnsUnauthorizedWithoutAPIKey(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/api/events", nil)
+	rec := httptest.NewRecorder()
+
+	handler := EventsHandler(nil, "test")
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Errorf("expected status %d, got %d", http.StatusUnauthorized, rec.Code)
 	}
 }
