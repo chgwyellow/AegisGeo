@@ -106,3 +106,58 @@ func TestUsgsClientFetchLatestReturnsErrorWhenServerStatusIsNotOK(t *testing.T) 
 		t.Fatal("expected error, got nil")
 	}
 }
+
+// Test broken invalid data
+func TestUsgsClientFetchLatestReturnsErrorWhenJSONIsInvalid(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"features": [`))
+	}))
+	defer server.Close()
+
+	client := NewUsgsClient(server.URL)
+
+	_, err := client.FetchLatest()
+
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+}
+
+// The default depth should be 0 which coordinates has only two elements
+func TestUsgsClientFetchLatestDefaultsDepthToZeroWhenDepthIsMissing(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{
+		"features": [
+				{
+					"id": "test-earthquake-001",
+					"properties": {
+						"mag": 5.6,
+						"place": "10 km S of Hualien City, Taiwan",
+						"time": 1784160000000,
+						"title": "M 5.6 - 10 km S of Hualien City, Taiwan",
+						"tsunami": 0
+					},
+					"geometry": {
+						"coordinates": [121.6, 23.9]
+					}
+				}
+			]
+		}`,
+		))
+	}))
+	defer server.Close()
+
+	client := NewUsgsClient(server.URL)
+
+	events, _ := client.FetchLatest()
+
+	event := events[0]
+
+	if event.Depth != 0 {
+		t.Fatal("expected error, got nil")
+	}
+}
