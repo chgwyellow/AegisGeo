@@ -153,11 +153,15 @@ func TestUsgsClientFetchLatestDefaultsDepthToZeroWhenDepthIsMissing(t *testing.T
 
 	client := NewUsgsClient(server.URL)
 
-	events, _ := client.FetchLatest()
+	events, err := client.FetchLatest()
+
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
 
 	event := events[0]
 
 	if event.Depth != 0 {
-		t.Fatal("expected error, got nil")
+		t.Fatal("expected 0, got nil")
 	}
 }
