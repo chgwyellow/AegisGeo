@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// Test normal json data transform to Events type
 func TestUsgsClientFetchLatestTransformsRawResponseToEvents(t *testing.T) {
 	// Create fake server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -85,5 +86,23 @@ func TestUsgsClientFetchLatestTransformsRawResponseToEvents(t *testing.T) {
 	wantTime := time.UnixMilli(1784160000000)
 	if !event.Timestamp.Equal(wantTime) {
 		t.Errorf("expected Timestamp %v, got %v", wantTime, event.Timestamp)
+	}
+}
+
+// Test got fail status code
+func TestUsgsClientFetchLatestReturnsErrorWhenServerStatusIsNotOK(t *testing.T) {
+	// Test got 500 status code
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	client := NewUsgsClient(server.URL)
+
+	_, err := client.FetchLatest()
+
+	if err == nil {
+		t.Fatal("expected error, got nil")
 	}
 }
