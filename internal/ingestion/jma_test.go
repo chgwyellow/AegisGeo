@@ -93,3 +93,39 @@ func TestJmaClientFetchLatestTransformsRawResponseToEvents(t *testing.T) {
 		t.Errorf("expected Timestamp %v, got %v", wantTime, event.Timestamp)
 	}
 }
+
+// Test the empty name, which will jump out the loop
+func TestJmaClientFetchLatestSkipsEventWhenHypocenterNameIsEmpty(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`[
+			{
+				"id": "20260716143000",
+				"time": "2026/07/16 14:31:00",
+				"earthquake": {
+					"time": "2026/07/16 14:30:00",
+					"hypocenter": {
+						"name": "",
+						"depth": 10,
+						"latitude": 37.5,
+						"longitude": 137.2,
+						"magnitude": 5.1
+					}
+				}
+			}
+		]`))
+	}))
+	defer server.Close()
+
+	client := NewJmaClient(server.URL)
+
+	events, err := client.FetchLatest()
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(events) != 0 {
+		t.Fatalf("expected 0 events, got %d", len(events))
+	}
+}
