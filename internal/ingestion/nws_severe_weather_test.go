@@ -46,7 +46,7 @@ func TestNwsSevereWeatherClientFetchLatestTransformsRawResponseToEvents(t *testi
 	}
 
 	if event.Details["event_type"] != "Tornado Warning" {
-		t.Errorf("expected type %v, got %v", "Tornado Warning", event.Type)
+		t.Errorf("expected type %v, got %v", "Tornado Warning", event.Details["event_type"])
 	}
 
 	if event.Title != "Tornado Warning issued for Oklahoma County" {
