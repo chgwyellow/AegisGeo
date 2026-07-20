@@ -66,7 +66,21 @@ func TestNwsSevereWeatherClientFetchLatestTransformsRawResponseToEvents(t *testi
 		t.Fatalf("expected location %v, got %v", "Oklahoma County", event.Location)
 	}
 
-	if event.Details["storm_description"] != "A severe thunderstorm capable of producing a tornado was located near Oklahoma City. Take shelter immediately." {
-		t.Fatalf("expected description %v, got %v", "A severe thunderstorm capable of producing a tornado was located near Oklahoma City.\nTake shelter immediately.", event.Details["storm_description"])
+	expectedDescription := "A severe thunderstorm capable of producing a tornado was located near Oklahoma City. Take shelter immediately."
+
+	if event.Details["storm_description"] != expectedDescription {
+		t.Fatalf("expected description %v, got %v", expectedDescription, event.Details["storm_description"])
+	}
+
+	if event.Type != "SevereWeather" {
+		t.Errorf("expected Type %q, got %q", "SevereWeather", event.Type)
+	}
+
+	if event.Source != "NWS" {
+		t.Errorf("expected Source %q, got %q", "NWS", event.Source)
+	}
+
+	if event.Country != "US" {
+		t.Errorf("expected Country %q, got %q", "US", event.Country)
 	}
 }
