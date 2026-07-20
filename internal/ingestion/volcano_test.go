@@ -3,16 +3,15 @@ package ingestion
 import (
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 )
 
 func TestVolcanoClientFetchLatestTransformsRawResponseToEvents(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/XML")
+		w.Header().Set("Content-Type", "application/xml")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		w.Write([]byte(`
 			<rss version="2.0">
 			<channel>
 				<title>USGS Volcano Updates</title>
@@ -31,7 +30,7 @@ func TestVolcanoClientFetchLatestTransformsRawResponseToEvents(t *testing.T) {
 				</item>
 			</channel>
 		</rss>
-		}`))
+		`))
 	}))
 	defer server.Close()
 
@@ -64,22 +63,34 @@ func TestVolcanoClientFetchLatestTransformsRawResponseToEvents(t *testing.T) {
 		t.Errorf("expected Author %q, got %q", "USGS Volcano Hazards Program", event.Details["author"])
 	}
 
-	expected_description := "Kilauea volcano remains at advisory level with ongoing monitoring."
-	if event.Details["description"] != expected_description {
-		t.Errorf("expected Description %q, got %q", expected_description, event.Details["description"])
+	expectedDescription := "Kilauea volcano remains at advisory level with ongoing monitoring."
+	if event.Details["description"] != expectedDescription {
+		t.Errorf("expected Description %q, got %q", expectedDescription, event.Details["description"])
 	}
 
-	expected_link := "https://volcanoes.usgs.gov/volcanoes/kilauea/status.html"
-	if event.Details["url_link"] != expected_link {
-		t.Errorf("expected Link %q, got %q", expected_link, event.Details["url_link"])
+	expectedLink := "https://volcanoes.usgs.gov/volcanoes/kilauea/status.html"
+	if event.Details["url_link"] != expectedLink {
+		t.Errorf("expected Link %q, got %q", expectedLink, event.Details["url_link"])
 	}
 
-	wantTime, err := time.Parse(time.RFC1123Z, strings.TrimSpace("Mon, 20 Jul 2026 08:30:00 +0000"))
+	wantTime, err := time.Parse(time.RFC1123Z, "Mon, 20 Jul 2026 08:30:00 +0000")
 	if err != nil {
-		t.Errorf("Fail to pass %v", "Mon, 20 Jul 2026 08:30:00 +0000")
+		t.Fatalf("failed to prepare expected timestamp: %v", err)
 	}
 
 	if !event.Timestamp.Equal(wantTime) {
 		t.Errorf("expected Timestamp %v, got %v", wantTime, event.Timestamp)
+	}
+
+	if event.Source != "USGS" {
+		t.Errorf("expected Source %q, got %q", "USGS", event.Source)
+	}
+
+	if event.Type != "Volcano" {
+		t.Errorf("expected Type %q, got %q", "Volcano", event.Type)
+	}
+
+	if event.Country != "US" {
+		t.Errorf("expected Country %q, got %q", "US", event.Country)
 	}
 }
