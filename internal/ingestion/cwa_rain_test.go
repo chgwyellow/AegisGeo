@@ -92,4 +92,19 @@ func TestCwaRainClientFetchLatestTransformsRawResponseToEvents(t *testing.T) {
 	if event.Details["Warning"] != "Heavy Rain Advisory" {
 		t.Errorf("expected Warning %v, got %v", "Heavy Rain Advisory", event.Details["Warning"])
 	}
+	if event.Source != "CWA" {
+		t.Errorf("expected Source %q, got %q", "CWA", event.Source)
+	}
+
+	if event.Type != "Rain" {
+		t.Errorf("expected Type %q, got %q", "Rain", event.Type)
+	}
+
+	if event.Country != "TW" {
+		t.Errorf("expected Country %q, got %q", "TW", event.Country)
+	}
+
+	if event.Depth != 0 {
+		t.Errorf("expected Depth %v, got %v", 0.0, event.Depth)
+	}
 }
