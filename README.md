@@ -77,7 +77,7 @@ graph TD
 3. **JMA (Japan Meteorological Agency)**:
    - Fetches recent earthquake and tsunami history events for Japan. Event Type: `Earthquake`.
 4. **NOAA (National Oceanic and Atmospheric Administration)**:
-   - Fetches historical and real-time global tsunami telemetry data. Event Type: `Tsunami`.
+   - Fetches historical global tsunami event data from the NOAA/NCEI HAZEL hazard-service API. This source is not an active tsunami warning feed, so new records may appear sparsely. Event Type: `Tsunami`.
 5. **NWS (National Weather Service)**:
    - Fetches active severe weather alerts (e.g., Tornado, Severe Thunderstorm watches and warnings) across the US. Identifies requests via a contact email address in the `User-Agent` header, configured via the `Email` environment variable. Event Type: `SevereWeather`.
 
