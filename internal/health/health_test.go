@@ -19,6 +19,7 @@ func (f fakeClient) GetName() string {
 	return "FakeClient"
 }
 
+// Test for events number
 func TestBuildHealthResultCountsEvents(t *testing.T) {
 	client := fakeClient{}
 
@@ -29,6 +30,7 @@ func TestBuildHealthResultCountsEvents(t *testing.T) {
 	}
 }
 
+// Test for source name
 func TestBuildHealthResultIncludesClientName(t *testing.T) {
 	client := fakeClient{}
 
@@ -37,4 +39,16 @@ func TestBuildHealthResultIncludesClientName(t *testing.T) {
 	if result.Source != "FakeClient" {
 		t.Errorf("expected Source %q, got %q", "FakeClient", result.Source)
 	}
+}
+
+// Test for status code ok
+func TestBuildHealthResultReturnsOKStatusWhenFetchSucceeds(t *testing.T) {
+	client := fakeClient{}
+
+	result := BuildHealthResult(client)
+
+	if result.Status != "OK" {
+		t.Errorf("expected Status %q, got %q", "OK", result.Status)
+	}
+
 }
