@@ -69,24 +69,126 @@ graph TD
 ### Ingestion Clients and Data Sources
 
 1. **CWA (Central Weather Administration)**:
-   - **Earthquake Client**: Fetches Taiwan's latest earthquake reports from the CWA Open Data API (requires authorization token).
-   - **Rainfall Client**: Fetches real-time precipitation measurements from CWA weather stations across Taiwan (requires authorization token).
+   - **Earthquake Client**: Fetches Taiwan's latest earthquake reports from the CWA Open Data API (requires authorization token). Event Type: `Earthquake`.
+   - **Rainfall Client**: Fetches real-time precipitation measurements from CWA weather stations across Taiwan (requires authorization token). Event Type: `Rain`.
 2. **USGS (United States Geological Survey)**:
-   - Fetches global earthquake events in GeoJSON format. Translates geographic keywords/states to ISO country codes.
+   - **Earthquake Client**: Fetches global earthquake events in GeoJSON format. Translates geographic keywords/states to ISO country codes. Event Type: `Earthquake`.
+   - **Volcano Hazards Program**: Fetches real-time CAP (Common Alerting Protocol) volcanic activity alerts (XML format) from the HANS service. Event Type: `Volcano`.
 3. **JMA (Japan Meteorological Agency)**:
-   - Fetches recent earthquake and tsunami history events for Japan.
+   - Fetches recent earthquake and tsunami history events for Japan. Event Type: `Earthquake`.
 4. **NOAA (National Oceanic and Atmospheric Administration)**:
-   - Fetches historical and real-time global tsunami telemetry data.
+   - Fetches historical and real-time global tsunami telemetry data. Event Type: `Tsunami`.
 5. **NWS (National Weather Service)**:
-   - Fetches active severe weather alerts (e.g., Tornado, Severe Thunderstorm watches and warnings) across the US. Identifies requests via a contact email address in the `User-Agent` header, configured via the `Email` environment variable.
-6. **USGS Volcano Hazards Program**:
-   - Fetches real-time CAP (Common Alerting Protocol) volcanic activity alerts (XML format) from the HANS service.
+   - Fetches active severe weather alerts (e.g., Tornado, Severe Thunderstorm watches and warnings) across the US. Identifies requests via a contact email address in the `User-Agent` header, configured via the `Email` environment variable. Event Type: `SevereWeather`.
 
 ### Deduplication and Conflict Resolution Logic
 
 1. **Spatial and Temporal Collision Detection**: Before storing an event into the database, the system calculates its physical distance to existing events of the same `event_type` using PostGIS's `ST_DistanceSphere` function. If another event occurred within **60 seconds** and is within **50 kilometers**, it is identified as a collision.
 2. **Source-Based Deduplication**: When an earthquake collision is detected, if the database already contains a local high-precision event from `CWA` or `JMA`, and the new event is sourced from `USGS`, the system will filter out and discard the `USGS` event to ensure data accuracy.
 3. **Upsert (ON CONFLICT)**: If an event `ID` and `event_type` combination already exists, the database triggers `ON CONFLICT (id, event_type) DO UPDATE` to update variables such as magnitude, depth, timestamp, title, country, location, geom, and custom telemetry `details` (stored as JSONB).
+
+### Storage & Performance Features
+
+- **PostgreSQL Table Partitioning**: The primary table `geo_events` is partitioned by list (`PARTITION BY LIST (event_type)`) into sub-tables for enhanced query performance:
+  - `geo_events_earthquakes` (`Earthquake`)
+  - `geo_events_rainfalls` (`Rain`)
+  - `geo_events_tsunamis` (`Tsunami`)
+  - `geo_events_weather` (`SevereWeather`)
+  - `geo_events_volcanoes` (`Volcano`)
+  - `geo_events_default` (DEFAULT fallback)
+- **Indexing**: Optimized using a GIST spatial index (`ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)`) and B-Tree index on `event_timestamp DESC`.
+- **Transaction & Batch Ingestion**: Ingestion operations run inside database transactions utilizing `pgx.Batch` for high-throughput batch updates.
+
+---
+
+## REST API Specification
+
+AegisGeo provides a RESTful API server (`cmd/server/main.go`) to query processed disaster events and verify database status.
+
+### Endpoints Overview
+
+| Method | Endpoint | Authorization | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/status` | None | Database health check endpoint |
+| `GET` | `/api/events` | `X-API-KEY` Header | Returns recent disaster events with filtering options |
+
+---
+
+### 1. `GET /api/status`
+
+Checks whether the PostgreSQL database connection pool is active.
+
+- **Request Headers**: None required.
+- **Success Response**: `HTTP 200 OK`
+  - Body: `OK`
+- **Failure Response**: `HTTP 500 Internal Server Error`
+  - Body: `Database is down`
+
+---
+
+### 2. `GET /api/events`
+
+Fetches recent disaster events from the PostgreSQL database.
+
+- **Request Headers**:
+  - `X-API-KEY`: Required. Must match the `SECRET_KEY` value configured in `.env`.
+- **Query Parameters**:
+
+  | Parameter | Type | Required | Default Value | Description |
+  | :--- | :--- | :--- | :--- | :--- |
+  | `type` | String | No | *(All Types)* | Filter by event type: `Earthquake`, `Rain`, `Tsunami`, `SevereWeather`, `Volcano` |
+  | `start` | String | No | `30 days ago` | Filter start date in `YYYY-MM-DD` format (Timezone: CST / UTC+8) |
+  | `end` | String | No | `Current Date` | Filter end date in `YYYY-MM-DD` format (Timezone: CST / UTC+8) |
+
+- **HTTP Status Codes**:
+  - `200 OK`: Request succeeded. Returns JSON array of events.
+  - `400 Bad Request`: Invalid date format for `start` or `end` parameter (expected `YYYY-MM-DD`).
+  - `401 Unauthorized`: Missing or incorrect `X-API-KEY` header (`Unauthorized: Access Denied`).
+  - `500 Internal Server Error`: Database query or JSON encoding failure.
+
+#### Example Requests & Responses
+
+##### Fetch Latest Disaster Summaries (Default Top 20)
+
+```bash
+curl -H "X-API-KEY: your_secret_api_key" http://localhost:8080/api/events
+```
+
+##### Fetch Earthquakes with Date Range Filter
+
+```bash
+curl -H "X-API-KEY: your_secret_api_key" \
+     "http://localhost:8080/api/events?type=Earthquake&start=2026-07-01&end=2026-07-21"
+```
+
+##### Response Body (`200 OK`)
+
+```json
+[
+  {
+    "id": "us7000m123",
+    "title": "M 5.4 - 15 km ESE of Hualien, Taiwan",
+    "source": "USGS",
+    "event_type": "Earthquake",
+    "magnitude": 5.4,
+    "depth": 12.5,
+    "event_timestamp": "2026-07-20T18:45:00+08:00",
+    "country": "TW",
+    "location": "Hualien County, Taiwan"
+  },
+  {
+    "id": "CWA-EQ-115042",
+    "title": "07/20 18:44 第042號顯著有感地震",
+    "source": "CWA",
+    "event_type": "Earthquake",
+    "magnitude": 5.5,
+    "depth": 10.2,
+    "event_timestamp": "2026-07-20T18:44:12+08:00",
+    "country": "TW",
+    "location": "花蓮縣近海"
+  }
+]
+```
 
 ---
 
@@ -100,6 +202,9 @@ AegisGeo/
 │   └── ingest/
 │       └── main.go       # Telemetry ingestion job entry point (Single-cycle client fetches, PostGIS deduplication, DB save)
 ├── internal/
+│   ├── api/
+│   │   ├── handlers.go   # REST API route handlers (/api/events, /api/status)
+│   │   └── handlers_test.go # Unit tests for API handlers
 │   ├── database/
 │   │   └── postgres.go   # PostgreSQL client using pgxpool for queries, spatial collision deduplication, and Upsert operations
 │   ├── ingestion/
@@ -117,7 +222,7 @@ AegisGeo/
 │   └── store/
 │       └── cache.go      # Thread-safe in-memory cache using sync.RWMutex, sorted by timestamp descending
 ├── sql/
-│   └── Script.sql        # Database schema script (enables postgis and creates geo_events table with GIST index)
+│   └── Script.sql        # Database schema script (enables postgis, creates list partitioned geo_events table, GIST index, and GIS views)
 ├── .env                  # Environment configuration file (URLs, tokens, and DB URL)
 ├── go.mod                # Go module definition and dependencies
 └── README.md             # Project documentation
@@ -169,7 +274,7 @@ The ingestion job will:
 1. Load variables from `.env`.
 2. Connect and ping the PostgreSQL database.
 3. Spawn isolated Goroutines for `CWA Earthquake`, `CWA Rain`, `USGS`, `JMA`, `NOAA Tsunami`, `NWS Severe Weather`, and `USGS Volcano` clients concurrently.
-4. Fetch raw payloads, convert them to standard events, write to the database (performing PostGIS deduplication), and cache them in memory.
+4. Fetch raw payloads, convert them to standard events, write to the database (performing PostGIS deduplication and batch inserts), and cache them in memory.
 5. Print the latest 5 anomaly events cached in memory (ordered by timestamp descending) to the console and exit.
 
 #### Run the API Server
@@ -183,15 +288,7 @@ go run cmd/server/main.go
 The server will:
 
 1. Load variables from `.env` and connect to the PostgreSQL database.
-2. Register the following endpoints:
-   - `GET /api/status`: Returns `OK` if the database connection is alive.
-   - `GET /api/events`: Returns the latest 20 disaster events. **Requires the request header `X-API-KEY` matching the `SECRET_KEY` configured in `.env`.**
-     - Example request:
-
-       ```bash
-       curl -H "X-API-KEY: your_secret_api_key" http://localhost:8080/api/events
-       ```
-
+2. Register endpoints (`/api/status` and `/api/events`).
 3. Listen and serve requests on port `8080` (blocks until terminated).
 
 ### 4. Viewing Spatial Data in DBeaver
@@ -212,7 +309,7 @@ To view these on a map in DBeaver:
 
 ## Tech Stack
 
-- **Database Driver**: `github.com/jackc/pgx/v5` (`pgxpool` connection pool)
+- **Database Driver**: `github.com/jackc/pgx/v5` (`pgxpool` connection pool, batching transactions)
 - **Environment Variables**: `github.com/joho/godotenv`
 - **Concurrency Control**: Native `sync.WaitGroup` and `sync.RWMutex` (for thread-safe memory cache operations)
 
