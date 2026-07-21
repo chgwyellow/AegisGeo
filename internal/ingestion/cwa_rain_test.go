@@ -57,11 +57,11 @@ func TestCwaRainClientFetchLatestTransformsRawResponseToEvents(t *testing.T) {
 	event := events[0]
 
 	if event.ID != "CWA-RAIN-466920" {
-		t.Errorf("expected ID %v, got %v", "CWA-RAIN-466920", event.ID)
+		t.Errorf("expected ID %q, got %q", "CWA-RAIN-466920", event.ID)
 	}
 
 	if event.Title != "Taipei Station" {
-		t.Errorf("expected Title %v, got %v", "Taipei Station", event.Title)
+		t.Errorf("expected Title %q, got %q", "Taipei Station", event.Title)
 	}
 
 	if event.Magnitude != 45.5 {
@@ -69,7 +69,7 @@ func TestCwaRainClientFetchLatestTransformsRawResponseToEvents(t *testing.T) {
 	}
 
 	if event.Location != "Taipei CityZhongzheng District" {
-		t.Errorf("expected Location %v, got %v", "Taipei CityZhongzheng District", event.Location)
+		t.Errorf("expected Location %q, got %q", "Taipei CityZhongzheng District", event.Location)
 	}
 
 	if event.Latitude != 25.0375 {
@@ -90,7 +90,7 @@ func TestCwaRainClientFetchLatestTransformsRawResponseToEvents(t *testing.T) {
 	}
 
 	if event.Details["Warning"] != "Heavy Rain Advisory" {
-		t.Errorf("expected Warning %v, got %v", "Heavy Rain Advisory", event.Details["Warning"])
+		t.Errorf("expected Warning %q, got %q", "Heavy Rain Advisory", event.Details["Warning"])
 	}
 	if event.Source != "CWA" {
 		t.Errorf("expected Source %q, got %q", "CWA", event.Source)
