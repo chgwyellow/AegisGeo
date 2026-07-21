@@ -58,7 +58,7 @@ func TestCwaClientFetchLatestTransformsRawResponseToEvents(t *testing.T) {
 	}
 
 	if event.Magnitude != 5.3 {
-		t.Errorf("expected Magnitude %v, got %v", 5.1, event.Magnitude)
+		t.Errorf("expected Magnitude %v, got %v", 5.3, event.Magnitude)
 	}
 
 	if event.Depth != 18.5 {
@@ -84,5 +84,17 @@ func TestCwaClientFetchLatestTransformsRawResponseToEvents(t *testing.T) {
 
 	if !event.Timestamp.Equal(wantTime) {
 		t.Errorf("expected Timestamp %v, got %v", wantTime, event.Timestamp)
+	}
+
+	if event.Source != "CWA" {
+		t.Errorf("expected Source %q, got %q", "CWA", event.Source)
+	}
+
+	if event.Type != "Earthquake" {
+		t.Errorf("expected Type %q, got %q", "Earthquake", event.Type)
+	}
+
+	if event.Country != "TW" {
+		t.Errorf("expected Country %q, got %q", "TW", event.Country)
 	}
 }
