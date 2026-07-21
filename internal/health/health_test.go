@@ -8,6 +8,7 @@ import (
 type fakeClient struct {}
 
 func (f fakeClient) FetchLatest() ([]models.Event, error) {
+	// Fetch two data
 	return []models.Event{
 		{ID: "event-1"},
 		{ID: "event-2"},
