@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-type fakeClient struct {}
+type fakeClient struct{}
 
 func (f fakeClient) FetchLatest() ([]models.Event, error) {
 	// Fetch two data
@@ -26,5 +26,15 @@ func TestBuildHealthResultCountsEvents(t *testing.T) {
 
 	if result.EventCount != 2 {
 		t.Errorf("expected EventCount %d, got %d", 2, result.EventCount)
+	}
+}
+
+func TestBuildHealthResultIncludesClientName(t *testing.T) {
+	client := fakeClient{}
+
+	result := BuildHealthResult(client)
+
+	if result.Source != "FakeClient" {
+		t.Errorf("expected Source %q, got %q", "FakeClient", result.Source)
 	}
 }

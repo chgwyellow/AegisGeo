@@ -4,6 +4,7 @@ import "AegisGeo/internal/ingestion"
 
 type HealthResult struct {
 	EventCount int
+	Source     string
 }
 
 func BuildHealthResult(client ingestion.IngestionClient) HealthResult {
@@ -11,5 +12,6 @@ func BuildHealthResult(client ingestion.IngestionClient) HealthResult {
 
 	return HealthResult{
 		EventCount: len(events),
+		Source: client.GetName(),
 	}
 }
