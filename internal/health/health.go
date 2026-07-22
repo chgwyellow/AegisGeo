@@ -66,12 +66,12 @@ func BuildHealthResults(clients []ingestion.IngestionClient) []HealthResult {
 func FormatHealthResults(results []HealthResult) string {
 	var builder strings.Builder // a container which can be written string
 
-	fmt.Fprintf(&builder, "%-18s %-6s %-5s %-10s\n", "Source", "Status", "Count", "Duration")
-	builder.WriteString(strings.Repeat("-", 39))
+	fmt.Fprintf(&builder, "%-18s %-6s %-5s %-12s\n", "Source", "Status", "Count", "Duration")
+	builder.WriteString(strings.Repeat("-", 50))
 	builder.WriteString("\n")
 
 	for _, r := range results {
-		fmt.Fprintf(&builder, "%-18s %-6s %-5d %-10d\n", r.Source, r.Status, r.EventCount, r.Duration)
+		fmt.Fprintf(&builder, "%-18s %-6s %-5d %-12s\n", r.Source, r.Status, r.EventCount, r.Duration)
 	}
 
 	return builder.String() // builder is not a string type
