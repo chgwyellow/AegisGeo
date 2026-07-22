@@ -4,6 +4,7 @@ import (
 	"AegisGeo/internal/models"
 	"errors"
 	"testing"
+	"time"
 )
 
 type fakeClient struct{}
@@ -13,8 +14,14 @@ type failingClient struct{}
 func (f fakeClient) FetchLatest() ([]models.Event, error) {
 	// Fetch two data
 	return []models.Event{
-		{ID: "event-1"},
-		{ID: "event-2"},
+		{
+			ID:        "event-1",
+			Timestamp: time.Date(2026, 7, 21, 9, 0, 0, 0, time.UTC),
+		},
+		{
+			ID:        "event-2",
+			Timestamp: time.Date(2026, 7, 21, 10, 0, 0, 0, time.UTC),
+		},
 	}, nil
 }
 
@@ -84,5 +91,17 @@ func TestBuildHealthResultIncludesErrorMessageWhenFetchFails(t *testing.T) {
 
 	if result.Error != "fetch failed" {
 		t.Errorf("expected Error %q, got %q", "fetch failed", result.Error)
+	}
+}
+
+// Test latest data
+func TestBuildHealthResultIncludesLatestEventTime(t *testing.T) {
+	client := fakeClient{}
+
+	result := BuildHealthResult(client)
+
+	wantTime := time.Date(2026, 7, 21, 10, 0, 0, 0, time.UTC)
+	if !result.LatestEventTime.Equal(wantTime) {
+		t.Errorf("expected LatestEventTime %v, got %v", wantTime, result.LatestEventTime)
 	}
 }
