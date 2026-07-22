@@ -116,7 +116,7 @@ func FormatHealthResults(results []HealthResult) string {
 			errText,
 		)
 	}
-	fmt.Fprintf(&builder, "Summary: %d, Sources checked: %d OK, %d FAIL\n", len(results), OK, FAIL)
+	fmt.Fprintf(&builder, "Summary: %d sources checked, %d OK, %d FAIL\n", len(results), OK, FAIL)
 	builder.WriteString(line)
 
 	return builder.String() // builder is not a string type
