@@ -49,3 +49,14 @@ func BuildHealthResult(client ingestion.IngestionClient) HealthResult {
 		Duration:        duration,
 	}
 }
+
+func BuildHealthResults(clients []ingestion.IngestionClient) []HealthResult {
+	results := make([]HealthResult, 0, len(clients))
+
+	for _, client := range clients {
+		result := BuildHealthResult(client)
+		results = append(results, result)
+	}
+
+	return results
+}
