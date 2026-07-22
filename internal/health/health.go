@@ -66,13 +66,58 @@ func BuildHealthResults(clients []ingestion.IngestionClient) []HealthResult {
 func FormatHealthResults(results []HealthResult) string {
 	var builder strings.Builder // a container which can be written string
 
-	fmt.Fprintf(&builder, "%-18s %-6s %-5s %-12s\n", "Source", "Status", "Count", "Duration")
-	builder.WriteString(strings.Repeat("-", 50))
+	line := strings.Repeat("-", 102)
+
+	OK := 0
+	FAIL := 0
+
+	fmt.Fprintf(&builder, "AegisGeo Data Health Check\nGenerated at: %v\n", time.Now().Format("2006-01-02 15:04:05 CST"))
+
+	builder.WriteString(line)
+	builder.WriteString("\n")
+	fmt.Fprintf(
+		&builder,
+		"%-20s %-6s %-6s %-20s %-12s %-30s\n",
+		"Source",
+		"Status",
+		"Count",
+		"Latest Event Time",
+		"Duration",
+		"Error",
+	)
+	builder.WriteString(line)
 	builder.WriteString("\n")
 
 	for _, r := range results {
-		fmt.Fprintf(&builder, "%-18s %-6s %-5d %-12s\n", r.Source, r.Status, r.EventCount, r.Duration)
+		if r.Status == "OK" {
+			OK += 1
+		} else {
+			FAIL += 1
+		}
+
+		latest := "-"
+		if !r.LatestEventTime.IsZero() {
+			latest = r.LatestEventTime.Format("2006-01-02 15:04:05 CST")
+		}
+
+		errText := "-"
+		if r.Error != "" {
+			errText = r.Error
+		}
+
+		fmt.Fprintf(
+			&builder,
+			"%-20s %-6s %-6d %-20s %-12s %-30s\n",
+			r.Source,
+			r.Status,
+			r.EventCount,
+			latest,
+			r.Duration.String(),
+			errText,
+		)
 	}
+	fmt.Fprintf(&builder, "Summary: %d, Sources checked: %d OK, %d FAIL\n", len(results), OK, FAIL)
+	builder.WriteString(line)
 
 	return builder.String() // builder is not a string type
 }
