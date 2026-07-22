@@ -162,4 +162,8 @@ func TestBuildHealthResultsPreservesClientOrder(t *testing.T) {
 	if results[0].Source != "FakeClient" {
 		t.Errorf("expected %v, got %v", "FakeClient", results[0].Source)
 	}
+
+	if results[1].Source != "FailingClient" {
+		t.Errorf("expected second Source %q, got %q", "FailingClient", results[1].Source)
+	}
 }
