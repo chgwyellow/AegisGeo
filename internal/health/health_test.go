@@ -1,6 +1,7 @@
 package health
 
 import (
+	"AegisGeo/internal/ingestion"
 	"AegisGeo/internal/models"
 	"errors"
 	"testing"
@@ -128,5 +129,19 @@ func TestBuildHealthResultIncludesDuration(t *testing.T) {
 
 	if result.Duration <= 0 {
 		t.Errorf("expected Duration to be greater than 0, got %v", result.Duration)
+	}
+}
+
+// Test client numbers
+func TestBuildHealthResultsReturnsResultForEachClient(t *testing.T) {
+	clients := []ingestion.IngestionClient{
+		fakeClient{},
+		fakeClient{},
+	}
+
+	results := BuildHealthResults(clients)
+
+	if len(results) != 2 {
+		t.Errorf("expected 2 results, got %d", len(results))
 	}
 }
