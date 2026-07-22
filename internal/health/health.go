@@ -66,12 +66,14 @@ func BuildHealthResults(clients []ingestion.IngestionClient) []HealthResult {
 func FormatHealthResults(results []HealthResult) string {
 	var builder strings.Builder // a container which can be written string
 
+	fmt.Fprintf(&builder, "%-10s %-4s %-5s\n", "Source", "Status", "Counts")
+
 	for _, r := range results {
 		builder.WriteString(r.Source)
 		builder.WriteString(" ")
 		builder.WriteString(r.Status)
 		builder.WriteString(" ")
-		builder.WriteString(fmt.Sprintf("%d", r.EventCount))
+		fmt.Fprintf(&builder, "%d", r.EventCount)
 		builder.WriteString("\n")
 	}
 

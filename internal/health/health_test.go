@@ -192,4 +192,8 @@ func TestFormatHealthResultsIncludesSourceStatusAndCount(t *testing.T) {
 	if !strings.Contains(output, "2") {
 		t.Errorf("expected output to contain %q, got %q", "2", output)
 	}
+
+	if !strings.Contains(output, "Source") {
+		t.Errorf("expected output to contain %q, got %q", "Source", output)
+	}
 }
