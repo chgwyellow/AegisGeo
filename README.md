@@ -199,14 +199,19 @@ AegisGeo/
 ├── cmd/
 │   ├── server/
 │   │   └── main.go       # API server entry point (Sets up REST endpoints, connects to DB, and starts HTTP server)
-│   └── ingest/
-│       └── main.go       # Telemetry ingestion job entry point (Single-cycle client fetches, PostGIS deduplication, DB save)
+│   ├── ingest/
+│   │   └── main.go       # Telemetry ingestion job entry point (Single-cycle client fetches, PostGIS deduplication, DB save)
+│   └── health/
+│       └── main.go       # Data Health Check CLI tool (Inspects upstream client connectivity, latency, and event counts without DB write side effects)
 ├── internal/
 │   ├── api/
 │   │   ├── handlers.go   # REST API route handlers (/api/events, /api/status)
 │   │   └── handlers_test.go # Unit tests for API handlers
 │   ├── database/
 │   │   └── postgres.go   # PostgreSQL client using pgxpool for queries, spatial collision deduplication, and Upsert operations
+│   ├── health/
+│   │   ├── health.go     # Data health check logic, latency measurement, and CLI table formatting
+│   │   └── health_test.go# Unit tests for health check report generation
 │   ├── ingestion/
 │   │   ├── client.go     # IngestionClient interface definition
 │   │   ├── cwa.go        # Central Weather Administration (CWA) Earthquake client
@@ -276,6 +281,38 @@ The ingestion job will:
 3. Spawn isolated Goroutines for `CWA Earthquake`, `CWA Rain`, `USGS`, `JMA`, `NOAA Tsunami`, `NWS Severe Weather`, and `USGS Volcano` clients concurrently.
 4. Fetch raw payloads, convert them to standard events, write to the database (performing PostGIS deduplication and batch inserts), and cache them in memory.
 5. Print the latest 5 anomaly events cached in memory (ordered by timestamp descending) to the console and exit.
+
+#### Run the Data Health Check CLI Tool
+
+To inspect real-time operational status, event counts, API response latency, and latest event timestamps across all 7 upstream monitoring sources (without database side effects):
+
+```bash
+go run cmd/health/main.go
+```
+
+The health check CLI will:
+
+1. Load configuration from `.env`.
+2. Initialize client instances for `CWA Earthquake`, `USGS Earthquake`, `JMA Earthquake`, `NOAA Tsunami`, `CWA Rain Station`, `NWS Severe Weather`, and `USGS Volcano`.
+3. Fetch data across all sources while recording response latency.
+4. Print a formatted summary report to stdout:
+
+```text
+AegisGeo Data Health Check
+Generated at: 2026-07-22 16:35:41 CST
+------------------------------------------------------------------------------------------------------
+Source               Status Count  Latest Event Time    Duration     Error
+------------------------------------------------------------------------------------------------------
+CWA                  OK     16     2026-07-15 22:44:30 CST 352.66ms     -
+USGS                 OK     38     2026-07-22 14:46:40 CST 507.658ms    -
+JMA                  OK     29     2026-07-22 10:55:00 CST 194.2663ms   -
+NOAA-Tsunami         OK     125    2026-07-17 14:48:39 CST 618.49ms     -
+CWA-RainStation      OK     1318   2026-07-22 16:20:00 CST 332.866ms    -
+NWS-SevereWeather    OK     230    2026-07-22 00:19:00 CST 1.1545253s   -
+USGS-Volcano         OK     2      2026-07-21 12:12:32 CST 821.0272ms   -
+Summary: 7 sources checked, 7 OK, 0 FAIL
+------------------------------------------------------------------------------------------------------
+```
 
 #### Run the API Server
 
