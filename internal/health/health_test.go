@@ -2,10 +2,13 @@ package health
 
 import (
 	"AegisGeo/internal/models"
+	"errors"
 	"testing"
 )
 
 type fakeClient struct{}
+
+type failingClient struct{}
 
 func (f fakeClient) FetchLatest() ([]models.Event, error) {
 	// Fetch two data
@@ -17,6 +20,15 @@ func (f fakeClient) FetchLatest() ([]models.Event, error) {
 
 func (f fakeClient) GetName() string {
 	return "FakeClient"
+}
+
+func (f failingClient) FetchLatest() ([]models.Event, error) {
+	// Fetch two data
+	return nil, errors.New("fetch failed")
+}
+
+func (f failingClient) GetName() string {
+	return "FailingClient"
 }
 
 // Test for events number
@@ -51,4 +63,15 @@ func TestBuildHealthResultReturnsOKStatusWhenFetchSucceeds(t *testing.T) {
 		t.Errorf("expected Status %q, got %q", "OK", result.Status)
 	}
 
+}
+
+// Test for fail response
+func TestBuildHealthResultReturnsFailStatusWhenFetchFails(t *testing.T) {
+	client := failingClient{}
+
+	result := BuildHealthResult(client)
+
+	if result.Status != "FALL" {
+		t.Errorf("expected Status %q, got %q", "FAIL", result.Status)
+	}
 }

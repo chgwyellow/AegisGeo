@@ -9,7 +9,15 @@ type HealthResult struct {
 }
 
 func BuildHealthResult(client ingestion.IngestionClient) HealthResult {
-	events, _ := client.FetchLatest()
+	events, err := client.FetchLatest()
+
+	if err != nil {
+		return HealthResult{
+			EventCount: 0,
+			Source:     client.GetName(),
+			Status:     "FALL",
+		}
+	}
 
 	return HealthResult{
 		EventCount: len(events),
