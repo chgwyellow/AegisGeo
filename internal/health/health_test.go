@@ -4,6 +4,7 @@ import (
 	"AegisGeo/internal/ingestion"
 	"AegisGeo/internal/models"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 )
@@ -165,5 +166,30 @@ func TestBuildHealthResultsPreservesClientOrder(t *testing.T) {
 
 	if results[1].Source != "FailingClient" {
 		t.Errorf("expected second Source %q, got %q", "FailingClient", results[1].Source)
+	}
+}
+
+// Test result formatting
+func TestFormatHealthResultsIncludesSourceStatusAndCount(t *testing.T) {
+	results := []HealthResult{
+		{
+			Source:     "USGS",
+			Status:     "OK",
+			EventCount: 2,
+		},
+	}
+
+	output := FormatHealthResults(results)
+
+	if !strings.Contains(output, "USGS") {
+		t.Errorf("expected output to contain %q, got %q", "USGS", output)
+	}
+
+	if !strings.Contains(output, "OK") {
+		t.Errorf("expected output to contain %q, got %q", "OK", output)
+	}
+
+	if !strings.Contains(output, "2") {
+		t.Errorf("expected output to contain %q, got %q", "2", output)
 	}
 }

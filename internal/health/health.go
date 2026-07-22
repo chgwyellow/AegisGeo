@@ -2,6 +2,8 @@ package health
 
 import (
 	"AegisGeo/internal/ingestion"
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -59,4 +61,19 @@ func BuildHealthResults(clients []ingestion.IngestionClient) []HealthResult {
 	}
 
 	return results
+}
+
+func FormatHealthResults(results []HealthResult) string {
+	var builder strings.Builder // a container which can be written string
+
+	for _, r := range results {
+		builder.WriteString(r.Source)
+		builder.WriteString(" ")
+		builder.WriteString(r.Status)
+		builder.WriteString(" ")
+		builder.WriteString(fmt.Sprintf("%d", r.EventCount))
+		builder.WriteString("\n")
+	}
+
+	return builder.String() // builder is not a string type
 }
