@@ -24,7 +24,7 @@ func (f fakeClient) GetName() string {
 
 func (f failingClient) FetchLatest() ([]models.Event, error) {
 	// Simulate a failed fetch
-	return nil, errors.New("fetch failed")
+	return nil, errors.New("fetch failed") // create an error object
 }
 
 func (f failingClient) GetName() string {

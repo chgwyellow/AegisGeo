@@ -17,7 +17,7 @@ func BuildHealthResult(client ingestion.IngestionClient) HealthResult {
 			EventCount: 0,
 			Source:     client.GetName(),
 			Status:     "FAIL",
-			Error:      err.Error(),
+			Error:      err.Error(), // convert error object to string
 		}
 	}
 
