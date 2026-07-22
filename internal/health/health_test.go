@@ -23,7 +23,7 @@ func (f fakeClient) GetName() string {
 }
 
 func (f failingClient) FetchLatest() ([]models.Event, error) {
-	// Fetch two data
+	// Simulate a failed fetch
 	return nil, errors.New("fetch failed")
 }
 
