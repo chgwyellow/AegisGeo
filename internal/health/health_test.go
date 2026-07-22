@@ -71,7 +71,7 @@ func TestBuildHealthResultReturnsFailStatusWhenFetchFails(t *testing.T) {
 
 	result := BuildHealthResult(client)
 
-	if result.Status != "FALL" {
+	if result.Status != "FAIL" {
 		t.Errorf("expected Status %q, got %q", "FAIL", result.Status)
 	}
 }

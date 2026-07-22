@@ -15,7 +15,7 @@ func BuildHealthResult(client ingestion.IngestionClient) HealthResult {
 		return HealthResult{
 			EventCount: 0,
 			Source:     client.GetName(),
-			Status:     "FALL",
+			Status:     "FAIL",
 		}
 	}
 
