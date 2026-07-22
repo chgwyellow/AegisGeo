@@ -75,3 +75,14 @@ func TestBuildHealthResultReturnsFailStatusWhenFetchFails(t *testing.T) {
 		t.Errorf("expected Status %q, got %q", "FAIL", result.Status)
 	}
 }
+
+// Test for error message
+func TestBuildHealthResultIncludesErrorMessageWhenFetchFails(t *testing.T) {
+	client := failingClient{}
+
+	result := BuildHealthResult(client)
+
+	if result.Error != "fetch failed" {
+		t.Errorf("expected Error %q, got %q", "fetch failed", result.Error)
+	}
+}

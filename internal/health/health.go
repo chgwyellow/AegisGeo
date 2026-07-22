@@ -6,6 +6,7 @@ type HealthResult struct {
 	EventCount int
 	Source     string
 	Status     string
+	Error      string
 }
 
 func BuildHealthResult(client ingestion.IngestionClient) HealthResult {
@@ -16,6 +17,7 @@ func BuildHealthResult(client ingestion.IngestionClient) HealthResult {
 			EventCount: 0,
 			Source:     client.GetName(),
 			Status:     "FAIL",
+			Error:      err.Error(),
 		}
 	}
 
@@ -23,5 +25,6 @@ func BuildHealthResult(client ingestion.IngestionClient) HealthResult {
 		EventCount: len(events),
 		Source:     client.GetName(),
 		Status:     "OK",
+		Error:      "",
 	}
 }
