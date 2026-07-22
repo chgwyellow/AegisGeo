@@ -11,6 +11,8 @@ type fakeClient struct{}
 
 type failingClient struct{}
 
+type slowClient struct{}
+
 func (f fakeClient) FetchLatest() ([]models.Event, error) {
 	// Fetch two data
 	return []models.Event{
@@ -36,6 +38,18 @@ func (f failingClient) FetchLatest() ([]models.Event, error) {
 
 func (f failingClient) GetName() string {
 	return "FailingClient"
+}
+
+func (s slowClient) FetchLatest() ([]models.Event, error) {
+	time.Sleep(10 * time.Millisecond)
+
+	return []models.Event{
+		{ID: "event-1"},
+	}, nil
+}
+
+func (s slowClient) GetName() string {
+	return "SlowClient"
 }
 
 // Test for events number
@@ -103,5 +117,16 @@ func TestBuildHealthResultIncludesLatestEventTime(t *testing.T) {
 	wantTime := time.Date(2026, 7, 21, 10, 0, 0, 0, time.UTC)
 	if !result.LatestEventTime.Equal(wantTime) {
 		t.Errorf("expected LatestEventTime %v, got %v", wantTime, result.LatestEventTime)
+	}
+}
+
+// Test fetch duration
+func TestBuildHealthResultIncludesDuration(t *testing.T) {
+	client := slowClient{}
+
+	result := BuildHealthResult(client)
+
+	if result.Duration <= 0 {
+		t.Errorf("expected Duration to be greater than 0, got %v", result.Duration)
 	}
 }

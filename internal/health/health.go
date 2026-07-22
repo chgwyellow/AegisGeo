@@ -11,10 +11,15 @@ type HealthResult struct {
 	Status          string
 	Error           string
 	LatestEventTime time.Time
+	Duration        time.Duration
 }
 
 func BuildHealthResult(client ingestion.IngestionClient) HealthResult {
+	start := time.Now()
+
 	events, err := client.FetchLatest()
+
+	duration := time.Since(start)
 
 	latestEventTime := time.Time{}
 
@@ -26,10 +31,12 @@ func BuildHealthResult(client ingestion.IngestionClient) HealthResult {
 
 	if err != nil {
 		return HealthResult{
-			EventCount: 0,
-			Source:     client.GetName(),
-			Status:     "FAIL",
-			Error:      err.Error(), // convert error object to string
+			EventCount:      0,
+			Source:          client.GetName(),
+			Status:          "FAIL",
+			Error:           err.Error(), // convert error object to string
+			LatestEventTime: latestEventTime,
+			Duration:        duration,
 		}
 	}
 
@@ -39,5 +46,6 @@ func BuildHealthResult(client ingestion.IngestionClient) HealthResult {
 		Status:          "OK",
 		Error:           "",
 		LatestEventTime: latestEventTime,
+		Duration:        duration,
 	}
 }
