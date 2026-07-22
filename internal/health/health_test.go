@@ -145,3 +145,21 @@ func TestBuildHealthResultsReturnsResultForEachClient(t *testing.T) {
 		t.Errorf("expected 2 results, got %d", len(results))
 	}
 }
+
+// Test client sequence
+func TestBuildHealthResultsPreservesClientOrder(t *testing.T) {
+	clients := []ingestion.IngestionClient{
+		fakeClient{},
+		failingClient{},
+	}
+
+	results := BuildHealthResults(clients)
+
+	if len(results) != 2 {
+		t.Fatalf("expected 2 results, got %d", len(results))
+	}
+
+	if results[0].Source != "FakeClient" {
+		t.Errorf("expected %v, got %v", "FakeClient", results[0].Source)
+	}
+}
