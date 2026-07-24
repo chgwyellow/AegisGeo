@@ -71,7 +71,11 @@ func FormatHealthResults(results []HealthResult) string {
 	OK := 0
 	FAIL := 0
 
-	fmt.Fprintf(&builder, "AegisGeo Data Health Check\nGenerated at: %v\n", time.Now().Format("2006-01-02 15:04:05 CST"))
+	fmt.Fprintf(
+		&builder,
+		"AegisGeo Data Health Check\nGenerated at: %v\n",
+		time.Now().Format("2006-01-02 15:04:05 MST"),
+	)
 
 	builder.WriteString(line)
 	builder.WriteString("\n")
@@ -97,7 +101,7 @@ func FormatHealthResults(results []HealthResult) string {
 
 		latest := "-"
 		if !r.LatestEventTime.IsZero() {
-			latest = r.LatestEventTime.Format("2006-01-02 15:04:05 CST")
+			latest = r.LatestEventTime.Format("2006-01-02 15:04:05 MST")
 		}
 
 		errText := "-"
