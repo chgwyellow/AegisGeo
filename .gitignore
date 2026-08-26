@@ -18,3 +18,6 @@ config.local.yaml
 credentials.json
 *.log
 /tmp/
+
+# macOS
+.DS_Store
