@@ -2,9 +2,10 @@
 
 ![Go](https://img.shields.io/badge/Go-1.26.4-00ADD8?logo=go&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-PostGIS-4169E1?logo=postgresql&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.7.0-brightgreen)
-![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows&logoColor=white)
+![Version](https://img.shields.io/badge/version-1.8.0-brightgreen)
+![Platform](https://img.shields.io/badge/platform-macOS%20%2F%20Windows-0078D6?logo=apple&logoColor=white)
 ![Started](https://img.shields.io/badge/started-July%202026-blue)
+![Ended](https://img.shields.io/badge/ended-September%202026-6f42c1)
 
 AegisGeo is a global natural disaster and meteorological/geological anomaly monitoring backend engine built in Go. The system leverages concurrency to simultaneously fetch real-time data from multiple monitoring agencies (CWA, USGS, JMA, NOAA, NWS), cleanse and format the inputs into a unified model, perform spatial collision deduplication via PostgreSQL + PostGIS, and save the events to both a database and an in-memory cache.
 
@@ -101,112 +102,16 @@ graph TD
 
 ---
 
-## REST API Specification
-
-AegisGeo provides a RESTful API server (`cmd/server/main.go`) to query processed disaster events and verify database status.
-
-### Endpoints Overview
-
-| Method | Endpoint | Authorization | Description |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/api/status` | None | Database health check endpoint |
-| `GET` | `/api/events` | `X-API-KEY` Header | Returns recent disaster events with filtering options |
-
----
-
-### 1. `GET /api/status`
-
-Checks whether the PostgreSQL database connection pool is active.
-
-- **Request Headers**: None required.
-- **Success Response**: `HTTP 200 OK`
-  - Body: `OK`
-- **Failure Response**: `HTTP 500 Internal Server Error`
-  - Body: `Database is down`
-
----
-
-### 2. `GET /api/events`
-
-Fetches recent disaster events from the PostgreSQL database.
-
-- **Request Headers**:
-  - `X-API-KEY`: Required. Must match the `SECRET_KEY` value configured in `.env`.
-- **Query Parameters**:
-
-  | Parameter | Type | Required | Default Value | Description |
-  | :--- | :--- | :--- | :--- | :--- |
-  | `type` | String | No | *(All Types)* | Filter by event type: `Earthquake`, `Rain`, `Tsunami`, `SevereWeather`, `Volcano` |
-  | `start` | String | No | `30 days ago` | Filter start date in `YYYY-MM-DD` format (Timezone: CST / UTC+8) |
-  | `end` | String | No | `Current Date` | Filter end date in `YYYY-MM-DD` format (Timezone: CST / UTC+8) |
-
-- **HTTP Status Codes**:
-  - `200 OK`: Request succeeded. Returns JSON array of events.
-  - `400 Bad Request`: Invalid date format for `start` or `end` parameter (expected `YYYY-MM-DD`).
-  - `401 Unauthorized`: Missing or incorrect `X-API-KEY` header (`Unauthorized: Access Denied`).
-  - `500 Internal Server Error`: Database query or JSON encoding failure.
-
-#### Example Requests & Responses
-
-##### Fetch Latest Disaster Summaries (Default Top 20)
-
-```bash
-curl -H "X-API-KEY: your_secret_api_key" http://localhost:8080/api/events
-```
-
-##### Fetch Earthquakes with Date Range Filter
-
-```bash
-curl -H "X-API-KEY: your_secret_api_key" \
-     "http://localhost:8080/api/events?type=Earthquake&start=2026-07-01&end=2026-07-21"
-```
-
-##### Response Body (`200 OK`)
-
-```json
-[
-  {
-    "id": "us7000m123",
-    "title": "M 5.4 - 15 km ESE of Hualien, Taiwan",
-    "source": "USGS",
-    "event_type": "Earthquake",
-    "magnitude": 5.4,
-    "depth": 12.5,
-    "event_timestamp": "2026-07-20T18:45:00+08:00",
-    "country": "TW",
-    "location": "Hualien County, Taiwan"
-  },
-  {
-    "id": "CWA-EQ-115042",
-    "title": "07/20 18:44 第042號顯著有感地震",
-    "source": "CWA",
-    "event_type": "Earthquake",
-    "magnitude": 5.5,
-    "depth": 10.2,
-    "event_timestamp": "2026-07-20T18:44:12+08:00",
-    "country": "TW",
-    "location": "花蓮縣近海"
-  }
-]
-```
-
----
-
 ## Project Structure
 
 ```text
 AegisGeo/
 ├── cmd/
-│   ├── server/
-│   │   └── main.go       # API server entry point (Sets up REST endpoints, connects to DB, and starts HTTP server)
 │   ├── ingest/
 │   │   └── main.go       # Telemetry ingestion job entry point (Single-cycle client fetches, PostGIS deduplication, DB save)
 │   └── health/
 │       └── main.go       # Data Health Check CLI tool (Inspects upstream client connectivity, latency, and event counts without DB write side effects)
 ├── internal/
-│   ├── api/
-│   │   ├── handlers.go   # REST API route handlers (/api/events, /api/status)
-│   │   └── handlers_test.go # Unit tests for API handlers
 │   ├── database/
 │   │   └── postgres.go   # PostgreSQL client using pgxpool for queries, spatial collision deduplication, and Upsert operations
 │   ├── health/
@@ -261,7 +166,6 @@ NOAA_API_URL=https://www.ngdc.noaa.gov/hazel/hazard-service/api/v1/tsunamis/even
 NWS_API_URL=https://api.weather.gov/alerts/active?event=Tornado%20Watch,Tornado%20Warning,Severe%20Thunderstorm%20Watch,Severe%20Thunderstorm%20Warning
 VOLCANO_API_URL=https://volcanoes.usgs.gov/hans-public/rss/cap/
 Email=your_email@example.com
-SECRET_KEY=your_secret_api_key
 ```
 
 ### 3. Run the Applications
@@ -313,20 +217,6 @@ USGS-Volcano         OK     2      2026-07-21 12:12:32 CST   821.0272ms   -
 Summary: 7 sources checked, 7 OK, 0 FAIL
 --------------------------------------------------------------------------------------------------------
 ```
-
-#### Run the API Server
-
-To start the REST API server to serve event data:
-
-```bash
-go run cmd/server/main.go
-```
-
-The server will:
-
-1. Load variables from `.env` and connect to the PostgreSQL database.
-2. Register endpoints (`/api/status` and `/api/events`).
-3. Listen and serve requests on port `8080` (blocks until terminated).
 
 ### 4. Viewing Spatial Data in DBeaver
 
